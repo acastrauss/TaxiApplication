@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<StartupServicesManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <Parameters>
+    <Parameter Name="TaxiDB_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="TaxiDB_PartitionCount" DefaultValue="1" />
+    <Parameter Name="TaxiDB_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="TaxiMainLogic_InstanceCount" DefaultValue="-1" />
+    <Parameter Name="TaxiWeb_InstanceCount" DefaultValue="-1" />
+  </Parameters>
+  <Services>
+    <!-- The section below creates instances of service types, when an instance of this 
+         application type is created. You can also create one or more instances of service type using the 
+         ServiceFabric PowerShell module.
+
+         The attribute ServiceTypeName below must match the name defined in the imported ServiceManifest.xml file. -->
+    <Service Name="TaxiDB" ServicePackageActivationMode="ExclusiveProcess">
+      <StatefulService ServiceTypeName="TaxiDBType" TargetReplicaSetSize="[TaxiDB_TargetReplicaSetSize]" MinReplicaSetSize="[TaxiDB_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[TaxiDB_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
+    <Service Name="TaxiMainLogic" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="TaxiMainLogicType" InstanceCount="[TaxiMainLogic_InstanceCount]">
+        <SingletonPartition />
+      </StatelessService>
+    </Service>
+    <Service Name="TaxiWeb" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="TaxiWebType" InstanceCount="[TaxiWeb_InstanceCount]">
+        <SingletonPartition />
+      </StatelessService>
+    </Service>
+  </Services>
+</StartupServicesManifest>
