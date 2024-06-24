@@ -4,7 +4,11 @@ using System.Fabric;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts.Database;
+using Contracts.Logic;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace TaxiMainLogic
@@ -12,11 +16,17 @@ namespace TaxiMainLogic
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiMainLogic : StatelessService
+    internal sealed class TaxiMainLogic : StatelessService, IAuthService
     {
         public TaxiMainLogic(StatelessServiceContext context)
             : base(context)
         { }
+
+        public async Task Ping()
+        {
+            var proxy = ServiceProxy.Create<IAuthDBService>(new Uri("fabric:/TaxiApplication/TaxiData"));
+            await proxy.Ping();
+        }
 
         /// <summary>
         /// Optional override to create listeners (e.g., TCP, HTTP) for this service replica to handle client or user requests.
@@ -24,7 +34,7 @@ namespace TaxiMainLogic
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
-            return new ServiceInstanceListener[0];
+            return this.CreateServiceRemotingInstanceListeners();
         }
 
         /// <summary>
