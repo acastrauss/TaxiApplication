@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
+using Contracts.Database;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace TaxiMainLogic
@@ -20,9 +22,10 @@ namespace TaxiMainLogic
                 // Registering a service maps a service type name to a .NET type.
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
+                var authDBProxy = ServiceProxy.Create<IAuthDBService>(new Uri("fabric:/TaxiApplication/TaxiData"));
 
                 ServiceRuntime.RegisterServiceAsync("TaxiMainLogicType",
-                    context => new TaxiMainLogic(context)).GetAwaiter().GetResult();
+                    context => new TaxiMainLogic(context, authDBProxy)).GetAwaiter().GetResult();
 
                 ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TaxiMainLogic).Name);
 

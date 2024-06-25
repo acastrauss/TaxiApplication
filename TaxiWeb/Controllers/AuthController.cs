@@ -4,18 +4,23 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace TaxiWeb
+namespace TaxiWeb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private IAuthService authService { get; set; }
+        public AuthController(IAuthService authService)
+        {
+            this.authService = authService;
+        }
+
         // GET: api/<AuthController>
         [HttpGet]
         public async Task Get()
         {
-            var proxy = ServiceProxy.Create<IAuthService>(new Uri("fabric:/TaxiApplication/TaxiMainLogic"));
-            await proxy.Ping();
+            await authService.Ping();
         }
 
         // GET api/<AuthController>/5

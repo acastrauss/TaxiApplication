@@ -18,14 +18,17 @@ namespace TaxiMainLogic
     /// </summary>
     internal sealed class TaxiMainLogic : StatelessService, IAuthService
     {
-        public TaxiMainLogic(StatelessServiceContext context)
+        private IAuthDBService authDBService;
+
+        public TaxiMainLogic(StatelessServiceContext context, IAuthDBService authDBService)
             : base(context)
-        { }
+        {
+            this.authDBService = authDBService;
+        }
 
         public async Task Ping()
         {
-            var proxy = ServiceProxy.Create<IAuthDBService>(new Uri("fabric:/TaxiApplication/TaxiData"));
-            await proxy.Ping();
+            await authDBService.Ping();
         }
 
         /// <summary>
