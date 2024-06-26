@@ -9,6 +9,7 @@ using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
+using Models.Auth;
 
 namespace TaxiData
 {
@@ -21,8 +22,9 @@ namespace TaxiData
             : base(context)
         { }
 
-        public async Task Ping()
+        public Task<LoginData> Login(LoginData loginData)
         {
+            return Task.FromResult(loginData);
         }
 
         /// <summary>

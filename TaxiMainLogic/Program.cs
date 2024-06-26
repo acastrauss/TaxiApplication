@@ -22,7 +22,8 @@ namespace TaxiMainLogic
                 // Registering a service maps a service type name to a .NET type.
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
-                var authDBProxy = ServiceProxy.Create<IAuthDBService>(new Uri("fabric:/TaxiApplication/TaxiData"));
+                var authDBProxy = ServiceProxy.Create<IAuthDBService>(new Uri("fabric:/TaxiApplication/TaxiData"),
+                    new Microsoft.ServiceFabric.Services.Client.ServicePartitionKey(1));
 
                 ServiceRuntime.RegisterServiceAsync("TaxiMainLogicType",
                     context => new TaxiMainLogic(context, authDBProxy)).GetAwaiter().GetResult();

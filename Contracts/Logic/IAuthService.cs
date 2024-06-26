@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ServiceModel;
 using Microsoft.ServiceFabric.Services.Remoting;
+using Models.Auth;
 
 namespace Contracts.Logic
 {
+    [ServiceContract]
     public interface IAuthService : IService
     {
-        Task Ping();
+        [OperationContract]
+        Task<LoginData> Login(LoginData loginData);
     }
 }

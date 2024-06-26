@@ -10,6 +10,7 @@ using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Models.Auth;
 
 namespace TaxiMainLogic
 {
@@ -26,9 +27,9 @@ namespace TaxiMainLogic
             this.authDBService = authDBService;
         }
 
-        public async Task Ping()
+        public async Task<LoginData> Login(LoginData loginData)
         {
-            await authDBService.Ping();
+            return await authDBService.Login(loginData);
         }
 
         /// <summary>

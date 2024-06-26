@@ -1,6 +1,7 @@
 ﻿using Contracts.Logic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Models.Auth;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -16,36 +17,17 @@ namespace TaxiWeb.Controllers
             this.authService = authService;
         }
 
-        // GET: api/<AuthController>
         [HttpGet]
-        public async Task Get()
+        public IActionResult Get()
         {
-            await authService.Ping();
-        }
-
-        // GET api/<AuthController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
+            return Ok();
         }
 
         // POST api/<AuthController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<LoginData> Post([FromBody] LoginData loginData)
         {
-        }
-
-        // PUT api/<AuthController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<AuthController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            return await authService.Login(loginData);
         }
     }
 }
