@@ -5,15 +5,17 @@ VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "TaxiApplication", "TaxiApplication\TaxiApplication.sfproj", "{663354CE-47BE-4965-9909-5E62920FB02B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxiWeb", "TaxiWeb\TaxiWeb.csproj", "{A22DA4F3-B19A-4394-AF4D-A87C7BE3C6D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiWeb", "TaxiWeb\TaxiWeb.csproj", "{A22DA4F3-B19A-4394-AF4D-A87C7BE3C6D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxiMainLogic", "TaxiMainLogic\TaxiMainLogic.csproj", "{AA993090-2473-4609-9D33-823D2F6E235E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiMainLogic", "TaxiMainLogic\TaxiMainLogic.csproj", "{AA993090-2473-4609-9D33-823D2F6E235E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Contracts\Contracts.csproj", "{59692B3E-96CF-4F3C-A68D-11B94F95ED09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contracts", "Contracts\Contracts.csproj", "{59692B3E-96CF-4F3C-A68D-11B94F95ED09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{0EB105C8-5B3B-402C-9487-23EAA45D13E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{0EB105C8-5B3B-402C-9487-23EAA45D13E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxiData", "TaxiData\TaxiData.csproj", "{D00DC46E-7FF2-4924-B5C2-845CDDCF84A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaxiData", "TaxiData\TaxiData.csproj", "{D00DC46E-7FF2-4924-B5C2-845CDDCF84A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureStorageWrapper", "AzureStorageWrapper\AzureStorageWrapper.csproj", "{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,14 @@ Global
 		{D00DC46E-7FF2-4924-B5C2-845CDDCF84A2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D00DC46E-7FF2-4924-B5C2-845CDDCF84A2}.Release|x64.ActiveCfg = Release|Any CPU
 		{D00DC46E-7FF2-4924-B5C2-845CDDCF84A2}.Release|x64.Build.0 = Release|Any CPU
+		{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}.Debug|x64.Build.0 = Debug|Any CPU
+		{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}.Release|x64.ActiveCfg = Release|Any CPU
+		{99B4AD4A-FAC3-4B5F-A9BC-F49A905D2DF5}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

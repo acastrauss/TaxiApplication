@@ -14,5 +14,8 @@ namespace Contracts.Logic
     {
         [OperationContract]
         Task<LoginData> Login(LoginData loginData);
+
+        [OperationContract]
+        Task<bool> Register(UserProfile userProfile);
     }
 }

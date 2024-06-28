@@ -29,5 +29,19 @@ namespace TaxiWeb.Controllers
         {
             return await authService.Login(loginData);
         }
+
+        // POST api/<AuthController>/register
+        [HttpPost]
+        [Route("register")]
+        public async Task<IActionResult> Post([FromBody] UserProfile userProfile)
+        {
+            var res = await authService.Register(userProfile);
+            if (res)
+            {
+                return new ObjectResult(res) { StatusCode = StatusCodes.Status201Created };
+            }
+
+            return new ObjectResult(res) { StatusCode = StatusCodes.Status400BadRequest };
+        }
     }
 }

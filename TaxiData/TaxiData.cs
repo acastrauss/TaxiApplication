@@ -10,6 +10,9 @@ using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Models.Auth;
+using AzureStorageWrapper.DTO;
+using AzureStorageWrapper;
+using AzureStorageWrapper.Entities;
 
 namespace TaxiData
 {
@@ -18,13 +21,30 @@ namespace TaxiData
     /// </summary>
     internal sealed class TaxiData : StatefulService, IAuthDBService
     {
-        public TaxiData(StatefulServiceContext context)
+        private AzureStorageWrapper<User> storageWrapper;
+
+        public TaxiData(StatefulServiceContext context, AzureStorageWrapper<User> storageWrapper)
             : base(context)
-        { }
+        {
+            this.storageWrapper = storageWrapper;
+        }
 
         public Task<LoginData> Login(LoginData loginData)
         {
             return Task.FromResult(loginData);
+        }
+
+        public async Task<bool> Register(UserProfile userProfile)
+        {
+            var userDb = UserDTO.AppToDb(userProfile);
+            if(await storageWrapper.ExistsByKeys(userDb.PartitionKey, userDb.RowKey))
+            {
+                return false;
+            }
+
+            var created = await storageWrapper.Create(userDb);
+
+            return created != null;
         }
 
         /// <summary>
