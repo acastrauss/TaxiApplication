@@ -29,12 +29,19 @@ namespace TaxiMainLogic
 
         public async Task<LoginData> Login(LoginData loginData)
         {
-            return await authDBService.Login(loginData);
+            return default;
         }
 
         public async Task<bool> Register(UserProfile userProfile)
         {
-            return await authDBService.Register(userProfile);
+            var userExists = await authDBService.Exists(userProfile.Type.ToString(), userProfile.Email);
+
+            if (userExists)
+            {
+                return false;
+            }
+
+            return await authDBService.CreateUser(userProfile);
         }
 
         /// <summary>

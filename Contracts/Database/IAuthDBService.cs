@@ -13,9 +13,11 @@ namespace Contracts.Database
     public interface IAuthDBService : IService
     {
         [OperationContract]
-        Task<LoginData> Login(LoginData loginData);
+        Task<bool> Exists(string partitionKey, string rowKey);
 
         [OperationContract]
-        Task<bool> Register(UserProfile userProfile);
+        Task<bool> CreateUser(UserProfile appModel);
     }
+
+
 }

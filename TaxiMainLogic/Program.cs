@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Contracts.Database;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Models.Auth;
 
 namespace TaxiMainLogic
 {

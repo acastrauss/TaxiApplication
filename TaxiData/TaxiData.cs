@@ -13,38 +13,66 @@ using Models.Auth;
 using AzureStorageWrapper.DTO;
 using AzureStorageWrapper;
 using AzureStorageWrapper.Entities;
+using Azure.Data.Tables;
 
 namespace TaxiData
 {
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiData : StatefulService, IAuthDBService
+    internal sealed class TaxiData : StatefulService, IAuthDBService 
     {
         private AzureStorageWrapper<User> storageWrapper;
+        private IDTOConverter<User, UserProfile> DTOConverter;
 
-        public TaxiData(StatefulServiceContext context, AzureStorageWrapper<User> storageWrapper)
+        private readonly string usersDictionaryName = "usersDictionary";
+
+        public TaxiData(StatefulServiceContext context, AzureStorageWrapper<User> storageWrapper, IDTOConverter<User, UserProfile> converter)
             : base(context)
         {
             this.storageWrapper = storageWrapper;
+            this.DTOConverter = converter;
         }
 
-        public Task<LoginData> Login(LoginData loginData)
+        public async Task<bool> Exists(string partitionKey, string rowKey)
         {
-            return Task.FromResult(loginData);
-        }
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            using var tx = StateManager.CreateTransaction();
+            var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
+            await tx.CommitAsync();
+            return existing.HasValue;
+        } 
 
-        public async Task<bool> Register(UserProfile userProfile)
+        public async Task<bool> Create(UserProfile appModel)
         {
-            var userDb = UserDTO.AppToDb(userProfile);
-            if(await storageWrapper.ExistsByKeys(userDb.PartitionKey, userDb.RowKey))
-            {
-                return false;
-            }
-
-            var created = await storageWrapper.Create(userDb);
-
+            var dict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            using var tx = StateManager.CreateTransaction();
+            var dictKey = $"{appModel.Type.ToString()}{appModel.Email}";
+            var created = await dict.AddOrUpdateAsync(tx, dictKey, appModel, (key, value) => value);
+            await tx.CommitAsync();
             return created != null;
+        }
+
+        public async Task<bool> CreateUser(UserProfile appModel)
+        {
+            return await Create(appModel);
+        }
+
+        private async Task SyncAzureTablesWithDict()
+        {
+            // Finish sync with azure table storage
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, User>>(usersDictionaryName);
+            using var tx = StateManager.CreateTransaction();
+            var usersEnum = await usersDict.CreateEnumerableAsync(tx);
+            var asyncEnum = usersEnum.GetAsyncEnumerator();
+            while (await asyncEnum.MoveNextAsync(default))
+            {
+                var user = asyncEnum.Current.Value;
+                if (user != null)
+                {
+                    // Add to azure table
+                }
+            }
         }
 
         /// <summary>
@@ -92,5 +120,6 @@ namespace TaxiData
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
         }
+
     }
 }

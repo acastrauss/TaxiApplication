@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace AzureStorageWrapper.Entities
 {
-    public class User : ITableEntity
+    public class User : AzureBaseEntity
     {
-        public User(string username, string email, string password, string fullname, DateTime dateOfBirth, string address, UserType type, string imagePath)
+        public User(string username, string email, string password, string fullname, DateTime dateOfBirth, string address, UserType type, string imagePath) : base(Enum.GetName(typeof(UserType), type)!, email)
         {
-            PartitionKey = Enum.GetName(typeof(UserType), type)!;
-            RowKey = email;
             Username = username;
             Email = email;
             Password = password;
@@ -25,10 +23,6 @@ namespace AzureStorageWrapper.Entities
             ImagePath = imagePath;
         }
 
-        public string PartitionKey { get; set; }
-        public string RowKey { get; set; }
-        public DateTimeOffset? Timestamp { get; set; }
-        public ETag ETag { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
@@ -37,6 +31,5 @@ namespace AzureStorageWrapper.Entities
         public string Address { get; set; } = string.Empty;
         public int Type { get; set; }
         public string ImagePath { get; set; } = string.Empty;
-        
     }
 }
