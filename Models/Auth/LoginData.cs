@@ -15,5 +15,8 @@ namespace Models.Auth
         
         [DataMember]
         public string Password { get; set; } = string.Empty;
+
+        [DataMember]
+        public UserType Type { get; set; }
     }
 }

@@ -27,9 +27,9 @@ namespace TaxiMainLogic
             this.authDBService = authDBService;
         }
 
-        public async Task<LoginData> Login(LoginData loginData)
+        public async Task<bool> Login(LoginData loginData)
         {
-            return default;
+            return await authDBService.ExistsWithPwd(loginData.Type.ToString(), loginData.Email, loginData.Password);
         }
 
         public async Task<bool> Register(UserProfile userProfile)

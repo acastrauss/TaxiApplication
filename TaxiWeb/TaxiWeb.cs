@@ -13,6 +13,9 @@ using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Data;
 using Contracts.Logic;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace TaxiWeb
 {
@@ -43,6 +46,26 @@ namespace TaxiWeb
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
                         var proxy = ServiceProxy.Create<IAuthService>(new Uri("fabric:/TaxiApplication/TaxiMainLogic"));
                         builder.Services.AddSingleton<IAuthService>(proxy);
+                        // TO DO: Add to config
+                        var key = Encoding.ASCII.GetBytes("hnp+XZqXd9T(ev#&X4?Ng-=pm;b-MieT1@tZGQ1eM#(2PA:P0wSyG_jJbcgt$e05Zp&Pwfa;Sw}qtN/iHEz61_F}93!vX=EaF(3#");
+                        builder.Services.AddAuthentication(x =>
+                        {
+                            x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                            x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                        })
+                        .AddJwtBearer(x =>
+                        {
+                            x.RequireHttpsMetadata = false;
+                            x.SaveToken = false;
+                            x.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                            {
+                                ValidateIssuerSigningKey = true,
+                                IssuerSigningKey = new SymmetricSecurityKey(key),
+                                ValidateIssuer = false,
+                                ValidateAudience = false
+                            };
+                        });
+
                         builder.WebHost
                                     .UseKestrel()
                                     .UseContentRoot(Directory.GetCurrentDirectory())

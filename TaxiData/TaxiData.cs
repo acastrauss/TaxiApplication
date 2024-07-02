@@ -44,6 +44,21 @@ namespace TaxiData
             return existing.HasValue;
         } 
 
+        public async Task<bool> ExistsWithPwd(string partitionKey, string rowKey, string password)
+        {
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            using var tx = StateManager.CreateTransaction();
+            var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
+            await tx.CommitAsync();
+            if (existing.HasValue)
+            {
+                return existing.Value.Password.Equals(password) &&
+                    existing.Value.Email.Equals(rowKey) &&
+                    existing.Value.Type.ToString().Equals(partitionKey);
+            }
+            return false;
+        }
+
         public async Task<bool> Create(UserProfile appModel)
         {
             var dict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
@@ -79,14 +94,7 @@ namespace TaxiData
             }
 
             await tx.CommitAsync();
-            try
-            {
-                await storageWrapper.AddOrUpdateMultiple(usersToSync);
-            }
-            catch (Exception e)
-            {
-                Trace.WriteLine(e.Message);
-            }
+            await storageWrapper.AddOrUpdateMultiple(usersToSync);
         }
 
         private async Task RunPeriodicalUpdate(CancellationToken cancellationToken)
@@ -100,7 +108,7 @@ namespace TaxiData
 
                 await SyncAzureTablesWithDict();
 
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
             }
         }
 

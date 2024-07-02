@@ -16,6 +16,9 @@ namespace Contracts.Database
         Task<bool> Exists(string partitionKey, string rowKey);
 
         [OperationContract]
+        Task<bool> ExistsWithPwd(string partitionKey, string rowKey, string password);
+
+        [OperationContract]
         Task<bool> CreateUser(UserProfile appModel);
     }
 
