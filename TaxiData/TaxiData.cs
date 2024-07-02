@@ -14,6 +14,7 @@ using AzureStorageWrapper.DTO;
 using AzureStorageWrapper;
 using AzureStorageWrapper.Entities;
 using Azure.Data.Tables;
+using System.Diagnostics;
 
 namespace TaxiData
 {
@@ -61,18 +62,66 @@ namespace TaxiData
         private async Task SyncAzureTablesWithDict()
         {
             // Finish sync with azure table storage
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, User>>(usersDictionaryName);
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
             using var tx = StateManager.CreateTransaction();
             var usersEnum = await usersDict.CreateEnumerableAsync(tx);
             var asyncEnum = usersEnum.GetAsyncEnumerator();
+            var usersToSync = new List<User>();
+            
             while (await asyncEnum.MoveNextAsync(default))
             {
                 var user = asyncEnum.Current.Value;
                 if (user != null)
                 {
                     // Add to azure table
+                    usersToSync.Add(DTOConverter.AppModelToAzure(user));
                 }
             }
+
+            await tx.CommitAsync();
+            try
+            {
+                await storageWrapper.AddOrUpdateMultiple(usersToSync);
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine(e.Message);
+            }
+        }
+
+        private async Task RunPeriodicalUpdate(CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                await SyncAzureTablesWithDict();
+
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            }
+        }
+
+        private async Task FillDictionaryWithExternalStorage()
+        {
+            var externalStorageEntities = storageWrapper.GetAll();
+            if(externalStorageEntities == null)
+            {
+                return;
+            }
+            var dict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            using var tx = StateManager.CreateTransaction();
+
+            foreach (var exEntity in externalStorageEntities)
+            {
+                var appModel = DTOConverter.AzureToAppModel(exEntity);
+                var dictKey = $"{appModel.Type}{appModel.Email}";
+                var created = await dict.AddOrUpdateAsync(tx, dictKey, appModel, (key, value) => value);
+            }
+
+            await tx.CommitAsync();
         }
 
         /// <summary>
@@ -99,8 +148,17 @@ namespace TaxiData
 
             var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
 
+            await FillDictionaryWithExternalStorage();
+
+            var periodicTask = RunPeriodicalUpdate(cancellationToken);
+
             while (true)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    await periodicTask;
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 using (var tx = this.StateManager.CreateTransaction())
@@ -118,8 +176,8 @@ namespace TaxiData
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+
             }
         }
-
     }
 }

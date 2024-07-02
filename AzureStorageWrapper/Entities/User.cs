@@ -11,6 +11,7 @@ namespace AzureStorageWrapper.Entities
 {
     public class User : AzureBaseEntity
     {
+        public User(): base("ADMIN", "NONE") { }
         public User(string username, string email, string password, string fullname, DateTime dateOfBirth, string address, UserType type, string imagePath) : base(Enum.GetName(typeof(UserType), type)!, email)
         {
             Username = username;
