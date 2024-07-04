@@ -1,12 +1,14 @@
 ﻿using Contracts.Logic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Models.Auth;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using TaxiWeb.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -16,10 +18,13 @@ namespace TaxiWeb.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private IAuthService authService { get; set; }
-        public AuthController(IAuthService authService)
+        private readonly IAuthService authService;
+        private readonly IOptions<JWTConfig> jwtConfig;
+
+        public AuthController(IAuthService authService, IOptions<JWTConfig> jwtConfig)
         {
             this.authService = authService;
+            this.jwtConfig = jwtConfig;
         }
 
         [HttpGet]
@@ -58,7 +63,7 @@ namespace TaxiWeb.Controllers
 
             var tokenHandler = new JwtSecurityTokenHandler();
             // TO DO: Add to config
-            var key = Encoding.ASCII.GetBytes("hnp+XZqXd9T(ev#&X4?Ng-=pm;b-MieT1@tZGQ1eM#(2PA:P0wSyG_jJbcgt$e05Zp&Pwfa;Sw}qtN/iHEz61_F}93!vX=EaF(3#");
+            var key = Encoding.ASCII.GetBytes(jwtConfig.Value.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
