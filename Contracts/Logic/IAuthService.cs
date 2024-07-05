@@ -13,7 +13,7 @@ namespace Contracts.Logic
     public interface IAuthService : IService
     {
         [OperationContract]
-        Task<bool> Login(LoginData loginData);
+        Task<Tuple<bool, UserType>> Login(LoginData loginData);
 
         [OperationContract]
         Task<bool> Register(UserProfile userProfile);

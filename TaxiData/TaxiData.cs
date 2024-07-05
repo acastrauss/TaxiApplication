@@ -94,7 +94,10 @@ namespace TaxiData
             }
 
             await tx.CommitAsync();
-            await storageWrapper.AddOrUpdateMultiple(usersToSync);
+            if(usersToSync.Count != 0)
+            {
+                await storageWrapper.AddOrUpdateMultiple(usersToSync);
+            }
         }
 
         private async Task RunPeriodicalUpdate(CancellationToken cancellationToken)

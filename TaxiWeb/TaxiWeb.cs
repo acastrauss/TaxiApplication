@@ -71,6 +71,17 @@ namespace TaxiWeb
                                     .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
                                     .UseUrls(url);
 
+                         builder.Services.AddCors(options =>
+                            {
+                                options.AddPolicy("AllowSpecificOrigins",
+                                    builder =>
+                                    {
+                                        builder.WithOrigins("http://localhost:3000") // Add your frontend URL here
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod();
+                                    });
+                            });
+
                         builder.Services.Configure<JWTConfig>(builder.Configuration.GetSection("JWT"));
                         var jwtSecret = builder.Configuration.GetSection("JWT").GetValue<string>("Secret");
 
@@ -104,7 +115,7 @@ namespace TaxiWeb
                         
                         var app = builder.Build();
                         // Configure the HTTP request pipeline.
-                        
+                        app.UseCors("AllowSpecificOrigins");
                         app.UseAuthorization();
                         
                         app.MapControllers();

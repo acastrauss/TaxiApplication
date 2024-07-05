@@ -45,7 +45,7 @@ namespace AzureStorageWrapper
                 if (existing != null)
                 {
                     await tableClient.UpdateEntityAsync(entity, existing.ETag, TableUpdateMode.Replace);
-                } 
+                }
                 else
                 {
                     await tableClient.AddEntityAsync(entity);
@@ -53,10 +53,15 @@ namespace AzureStorageWrapper
             }
         }
 
-        public async Task<T?> ExistsByKeys(string patritionKey, string rowKey)
+        public async Task<T> ExistsByKeys(string patritionKey, string rowKey)
         {
-            var res = await tableClient.GetEntityIfExistsAsync<T>(patritionKey, rowKey, default);
-            return res.Value;
+            var res = await tableClient.GetEntityIfExistsAsync<T>(patritionKey, rowKey);
+            if(res == null)
+            {
+                return default;
+            }
+
+            return res.HasValue ? res.Value : default;
         }
 
         public IEnumerable<T> GetAll()

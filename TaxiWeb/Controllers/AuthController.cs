@@ -56,7 +56,7 @@ namespace TaxiWeb.Controllers
         {
             var userExists = await authService.Login(loginData);
 
-            if (!userExists) 
+            if (!userExists.Item1) 
             {
                 return BadRequest();
             }
@@ -69,7 +69,7 @@ namespace TaxiWeb.Controllers
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Email, loginData.Email), 
-                    new Claim(ClaimTypes.Role, loginData.Type.ToString()) 
+                    new Claim(ClaimTypes.Role, userExists.Item2.ToString()) 
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

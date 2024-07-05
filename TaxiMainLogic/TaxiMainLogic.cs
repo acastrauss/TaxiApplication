@@ -27,9 +27,19 @@ namespace TaxiMainLogic
             this.authDBService = authDBService;
         }
 
-        public async Task<bool> Login(LoginData loginData)
+        public async Task<Tuple<bool, UserType>> Login(LoginData loginData)
         {
-            return await authDBService.ExistsWithPwd(loginData.Type.ToString(), loginData.Email, loginData.Password);
+            bool exists = false;
+            foreach (UserType type in Enum.GetValues(typeof(UserType)))
+            {
+                exists |= await authDBService.ExistsWithPwd(type.ToString(), loginData.Email, loginData.Password);
+                if (exists)
+                {
+                    return Tuple.Create(exists, type);
+                }
+            }
+
+            return Tuple.Create<bool, UserType>(exists, default);
         }
 
         public async Task<bool> Register(UserProfile userProfile)
