@@ -25,17 +25,15 @@ namespace TaxiData
     internal sealed class TaxiData : StatefulService, IAuthDBService 
     {
         private AzureStorageWrapper<User> storageWrapper;
-        private AzureBlobWrapper blobWrapper;
         private IDTOConverter<User, UserProfile> DTOConverter;
 
         private readonly string usersDictionaryName = "usersDictionary";
 
-        public TaxiData(StatefulServiceContext context, AzureStorageWrapper<User> storageWrapper, AzureBlobWrapper blobWrapper, IDTOConverter<User, UserProfile> converter)
+        public TaxiData(StatefulServiceContext context, AzureStorageWrapper<User> storageWrapper, IDTOConverter<User, UserProfile> converter)
             : base(context)
         {
             this.storageWrapper = storageWrapper;
             this.DTOConverter = converter;
-            this.blobWrapper = blobWrapper;
         }
 
         public async Task<bool> Exists(string partitionKey, string rowKey)
@@ -62,6 +60,20 @@ namespace TaxiData
             return false;
         }
 
+        public async Task<bool> ExistsSocialMediaAuth(string partitionKey, string rowKey)
+        {
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            using var tx = StateManager.CreateTransaction();
+            var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
+            await tx.CommitAsync();
+            if (existing.HasValue)
+            {
+                return existing.Value.Email.Equals(rowKey) &&
+                    existing.Value.Type.ToString().Equals(partitionKey);
+            }
+            return false;
+        }
+
         public async Task<bool> Create(UserProfile appModel)
         {
             var dict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
@@ -75,11 +87,6 @@ namespace TaxiData
         public async Task<bool> CreateUser(UserProfile appModel)
         {
             return await Create(appModel);
-        }
-
-        public async Task<string> UploadPicture(BlobUploadData blobUploadData)
-        {
-            return await blobWrapper.UploadBlob(blobUploadData.BlobName, blobUploadData.BlobStream);
         }
 
         private async Task SyncAzureTablesWithDict()

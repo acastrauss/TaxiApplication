@@ -33,7 +33,15 @@ namespace TaxiMainLogic
             bool exists = false;
             foreach (UserType type in Enum.GetValues(typeof(UserType)))
             {
-                exists |= await authDBService.ExistsWithPwd(type.ToString(), loginData.Email, loginData.Password);
+                if (loginData.authType == AuthType.TRADITIONAL)
+                {
+                    exists |= await authDBService.ExistsWithPwd(type.ToString(), loginData.Email, loginData.Password);
+                }
+                else
+                {
+                    exists |= await authDBService.ExistsSocialMediaAuth(type.ToString(), loginData.Email);
+                }
+
                 if (exists)
                 {
                     return Tuple.Create(exists, type);
@@ -53,11 +61,6 @@ namespace TaxiMainLogic
             }
 
             return await authDBService.CreateUser(userProfile);
-        }
-
-        public async Task<string> UploadPicture(BlobUploadData blobUploadData)
-        {
-            return await this.authDBService.UploadPicture(blobUploadData);
         }
 
         /// <summary>

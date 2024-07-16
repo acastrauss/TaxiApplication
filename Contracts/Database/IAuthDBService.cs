@@ -23,8 +23,6 @@ namespace Contracts.Database
         Task<bool> CreateUser(UserProfile appModel);
 
         [OperationContract]
-        Task<string> UploadPicture(BlobUploadData blobUploadData);
+        Task<bool> ExistsSocialMediaAuth(string partitionKey, string rowKey);
     }
-
-
 }

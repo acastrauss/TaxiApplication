@@ -18,8 +18,5 @@ namespace Contracts.Logic
 
         [OperationContract]
         Task<bool> Register(UserProfile userProfile);
-
-        [OperationContract]
-        Task<string> UploadPicture(BlobUploadData blobUploadData);
     }
 }

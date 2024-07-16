@@ -25,7 +25,6 @@ namespace AzureStorageWrapper
         {
             var blobClient = blobContainerClient.GetBlobClient(blobName);
             var res = await blobClient.UploadAsync(blobContent, true);
-
             return res != null ? $"{blobClient.Uri}/{blobName}" : null;
         }
     }

@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Models.Auth
 {
+    public enum AuthType
+    {
+        TRADITIONAL = 0,
+        GOOGLE = 1
+    }
+
     [DataContract]
     public class LoginData
     {
@@ -15,5 +21,8 @@ namespace Models.Auth
         
         [DataMember]
         public string Password { get; set; } = string.Empty;
+
+        [DataMember]
+        public AuthType authType { get; set; }
     }
 }

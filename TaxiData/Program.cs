@@ -32,10 +32,7 @@ namespace TaxiData
                         AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper = 
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User>(azureTableConnString, "user");
 
-                        AzureStorageWrapper.AzureBlobWrapper blobWrapper =
-                            new AzureStorageWrapper.AzureBlobWrapper(azureTableConnString, "profile-images");
-
-                        return new TaxiData(context, userStorageWrapper, blobWrapper, converter);
+                        return new TaxiData(context, userStorageWrapper, converter);
                     }
                     
                     
