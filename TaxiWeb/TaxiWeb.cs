@@ -88,7 +88,7 @@ namespace TaxiWeb
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
                         var proxy = ServiceProxy.Create<IAuthService>(new Uri("fabric:/TaxiApplication/TaxiMainLogic"));
                         builder.Services.AddSingleton<IAuthService>(proxy);
-                        // TO DO: Add to config
+                        
                         var key = Encoding.ASCII.GetBytes(jwtSecret);
                         builder.Services.AddAuthentication(x =>
                         {

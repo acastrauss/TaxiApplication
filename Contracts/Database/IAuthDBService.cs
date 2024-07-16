@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ServiceModel;
+using Models.Blob;
 
 namespace Contracts.Database
 {
@@ -20,6 +21,9 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<bool> CreateUser(UserProfile appModel);
+
+        [OperationContract]
+        Task<string> UploadPicture(BlobUploadData blobUploadData);
     }
 
 

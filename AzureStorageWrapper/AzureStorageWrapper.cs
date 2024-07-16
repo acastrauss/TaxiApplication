@@ -23,7 +23,7 @@ namespace AzureStorageWrapper
 
         protected virtual void Init()
         {
-            this.tableClient.CreateIfNotExists();
+            tableClient.CreateIfNotExists();
         }
 
         public async Task<T> Create(T entity)

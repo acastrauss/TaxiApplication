@@ -15,6 +15,7 @@ using AzureStorageWrapper;
 using AzureStorageWrapper.Entities;
 using Azure.Data.Tables;
 using System.Diagnostics;
+using Models.Blob;
 
 namespace TaxiData
 {
@@ -24,15 +25,17 @@ namespace TaxiData
     internal sealed class TaxiData : StatefulService, IAuthDBService 
     {
         private AzureStorageWrapper<User> storageWrapper;
+        private AzureBlobWrapper blobWrapper;
         private IDTOConverter<User, UserProfile> DTOConverter;
 
         private readonly string usersDictionaryName = "usersDictionary";
 
-        public TaxiData(StatefulServiceContext context, AzureStorageWrapper<User> storageWrapper, IDTOConverter<User, UserProfile> converter)
+        public TaxiData(StatefulServiceContext context, AzureStorageWrapper<User> storageWrapper, AzureBlobWrapper blobWrapper, IDTOConverter<User, UserProfile> converter)
             : base(context)
         {
             this.storageWrapper = storageWrapper;
             this.DTOConverter = converter;
+            this.blobWrapper = blobWrapper;
         }
 
         public async Task<bool> Exists(string partitionKey, string rowKey)
@@ -72,6 +75,11 @@ namespace TaxiData
         public async Task<bool> CreateUser(UserProfile appModel)
         {
             return await Create(appModel);
+        }
+
+        public async Task<string> UploadPicture(BlobUploadData blobUploadData)
+        {
+            return await blobWrapper.UploadBlob(blobUploadData.BlobName, blobUploadData.BlobStream);
         }
 
         private async Task SyncAzureTablesWithDict()

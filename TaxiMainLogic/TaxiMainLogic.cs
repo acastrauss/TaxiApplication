@@ -11,6 +11,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Models.Auth;
+using Models.Blob;
 
 namespace TaxiMainLogic
 {
@@ -52,6 +53,11 @@ namespace TaxiMainLogic
             }
 
             return await authDBService.CreateUser(userProfile);
+        }
+
+        public async Task<string> UploadPicture(BlobUploadData blobUploadData)
+        {
+            return await this.authDBService.UploadPicture(blobUploadData);
         }
 
         /// <summary>

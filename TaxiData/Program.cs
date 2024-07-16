@@ -29,9 +29,13 @@ namespace TaxiData
                     context =>
                     {
                         var azureTableConnString = context.CodePackageActivationContext.GetConfigurationPackageObject("Config").Settings.Sections["Database"].Parameters["AzureTableConnectionString"].Value;
-                        AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper = new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User>(azureTableConnString, "user");
+                        AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper = 
+                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User>(azureTableConnString, "user");
 
-                        return new TaxiData(context, userStorageWrapper, converter);
+                        AzureStorageWrapper.AzureBlobWrapper blobWrapper =
+                            new AzureStorageWrapper.AzureBlobWrapper(azureTableConnString, "profile-images");
+
+                        return new TaxiData(context, userStorageWrapper, blobWrapper, converter);
                     }
                     
                     
