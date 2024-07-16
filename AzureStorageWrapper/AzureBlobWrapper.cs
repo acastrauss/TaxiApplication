@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AzureStorageWrapper
 {
-    public class AzureBlobWrapper
+    public class AzureBlobWrapper : Contracts.Blob.IBlob
     {
         private readonly BlobServiceClient blobServiceClient;
         private readonly BlobContainerClient blobContainerClient;
@@ -23,8 +23,10 @@ namespace AzureStorageWrapper
 
         public async Task<string> UploadBlob(string blobName, Stream blobContent)
         {
-            var res = await blobContainerClient.UploadBlobAsync(blobName, blobContent);
-            return res != null ? $"{blobContainerClient.Uri}/{blobName}" : null;
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+            var res = await blobClient.UploadAsync(blobContent, true);
+
+            return res != null ? $"{blobClient.Uri}/{blobName}" : null;
         }
     }
 }

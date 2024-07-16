@@ -1,9 +1,12 @@
 ﻿using AzureStorageWrapper;
+using Contracts.Blob;
 using Contracts.Logic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Models.Blob;
+using TaxiWeb.Models;
 
 namespace TaxiWeb.Controllers
 {
@@ -12,10 +15,11 @@ namespace TaxiWeb.Controllers
     public class BlobController : ControllerBase
     {
         private readonly IAuthService authService;
-
-        public BlobController(IAuthService authService)
+        private readonly IBlob blob;
+        public BlobController(IAuthService authService, IBlob blob)
         {
             this.authService = authService;
+            this.blob = blob;
         }
 
 
@@ -39,9 +43,8 @@ namespace TaxiWeb.Controllers
             using (var memoryStream = new MemoryStream())
             {
                 await file.CopyToAsync(memoryStream);
-                AzureStorageWrapper.AzureBlobWrapper blobWrapper = new AzureBlobWrapper("AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;", "profile-images");
                 memoryStream.Position = 0;
-                var res = await blobWrapper.UploadBlob(blobName, memoryStream);
+                var res = await this.blob.UploadBlob(blobName, memoryStream);
                 if(res == null)
                 {
                     return BadRequest("Failed to upload image");
