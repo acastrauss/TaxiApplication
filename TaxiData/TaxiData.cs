@@ -14,7 +14,6 @@ using AzureStorageWrapper.DTO;
 using AzureStorageWrapper;
 using Azure.Data.Tables;
 using System.Diagnostics;
-using Models.Blob;
 using TaxiData.DataImplementations;
 using Models.UserTypes;
 

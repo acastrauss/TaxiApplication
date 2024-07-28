@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.ServiceModel;
 using Microsoft.ServiceFabric.Services.Remoting;
 using Models.Auth;
-using Models.Blob;
 
 namespace Contracts.Logic
 {

@@ -11,7 +11,6 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Models.Auth;
-using Models.Blob;
 
 namespace TaxiMainLogic
 {

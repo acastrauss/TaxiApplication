@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ServiceModel;
-using Models.Blob;
 using Models.UserTypes;
 
 namespace Contracts.Database

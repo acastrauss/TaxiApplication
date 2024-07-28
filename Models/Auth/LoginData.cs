@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -17,12 +18,18 @@ namespace Models.Auth
     public class LoginData
     {
         [DataMember]
+        [Required]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
         
         [DataMember]
+        [Required]
+        [MinLength(64)] // SHA256
+        [MaxLength(64)]
         public string Password { get; set; } = string.Empty;
 
         [DataMember]
+        [Required]
         public AuthType authType { get; set; }
     }
 }
