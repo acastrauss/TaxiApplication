@@ -22,9 +22,6 @@ namespace TaxiData
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
 
-                AzureStorageWrapper.DTO.IDTOConverter<AzureStorageWrapper.Entities.User, Models.Auth.UserProfile> converter =
-                    new UserDTO();
-    
                 ServiceRuntime.RegisterServiceAsync("TaxiDataType",
                     context =>
                     {
@@ -32,7 +29,10 @@ namespace TaxiData
                         AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper = 
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User>(azureTableConnString, "user");
 
-                        return new TaxiData(context, userStorageWrapper, converter);
+                        AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper =
+                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver>(azureTableConnString, "driver");
+
+                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper);
                     }
                     
                     

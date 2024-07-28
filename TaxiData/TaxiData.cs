@@ -12,10 +12,10 @@ using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Models.Auth;
 using AzureStorageWrapper.DTO;
 using AzureStorageWrapper;
-using AzureStorageWrapper.Entities;
 using Azure.Data.Tables;
 using System.Diagnostics;
 using Models.Blob;
+using TaxiData.DataImplementations;
 
 namespace TaxiData
 {
@@ -24,16 +24,31 @@ namespace TaxiData
     /// </summary>
     internal sealed class TaxiData : StatefulService, IAuthDBService 
     {
-        private AzureStorageWrapper<User> storageWrapper;
-        private IDTOConverter<User, UserProfile> DTOConverter;
+        private AzureStorageWrapper<AzureStorageWrapper.Entities.User> userTableStorageWrapper;
+        private AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverTableStorageWrapper;
+        
+        private IDTOConverter<AzureStorageWrapper.Entities.User, UserProfile> UserDTOConverter;
+        private IDTOConverter<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> DriverDTOConverter;
 
         private readonly string usersDictionaryName = "usersDictionary";
+        private readonly string driversDictionaryName = "driversDictionary";
 
-        public TaxiData(StatefulServiceContext context, AzureStorageWrapper<User> storageWrapper, IDTOConverter<User, UserProfile> converter)
+        private readonly Synchronizer<AzureStorageWrapper.Entities.User, Models.Auth.UserProfile> userSync;
+        private readonly Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> driverSync;
+
+        public TaxiData(
+            StatefulServiceContext context,
+            AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
+            AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper
+        )
             : base(context)
         {
-            this.storageWrapper = storageWrapper;
-            this.DTOConverter = converter;
+            userTableStorageWrapper = userStorageWrapper;
+            driverTableStorageWrapper = driverStorageWrapper;
+            UserDTOConverter = new UserDTO();
+            DriverDTOConverter = new DriverDTO();
+            userSync = new Synchronizer<AzureStorageWrapper.Entities.User, UserProfile>(userStorageWrapper, usersDictionaryName, UserDTOConverter, StateManager);
+            driverSync = new Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver>(driverStorageWrapper, driversDictionaryName, DriverDTOConverter, StateManager);
         }
 
         public async Task<bool> Exists(string partitionKey, string rowKey)
@@ -91,28 +106,8 @@ namespace TaxiData
 
         private async Task SyncAzureTablesWithDict()
         {
-            // Finish sync with azure table storage
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
-            using var tx = StateManager.CreateTransaction();
-            var usersEnum = await usersDict.CreateEnumerableAsync(tx);
-            var asyncEnum = usersEnum.GetAsyncEnumerator();
-            var usersToSync = new List<User>();
-            
-            while (await asyncEnum.MoveNextAsync(default))
-            {
-                var user = asyncEnum.Current.Value;
-                if (user != null)
-                {
-                    // Add to azure table
-                    usersToSync.Add(DTOConverter.AppModelToAzure(user));
-                }
-            }
-
-            await tx.CommitAsync();
-            if(usersToSync.Count != 0)
-            {
-                await storageWrapper.AddOrUpdateMultiple(usersToSync);
-            }
+            await userSync.SyncAzureTablesWithDict();
+            await driverSync.SyncAzureTablesWithDict();
         }
 
         private async Task RunPeriodicalUpdate(CancellationToken cancellationToken)
@@ -130,24 +125,10 @@ namespace TaxiData
             }
         }
 
-        private async Task FillDictionaryWithExternalStorage()
+        private async Task SyncDictWithAzureTable()
         {
-            var externalStorageEntities = storageWrapper.GetAll();
-            if(externalStorageEntities == null)
-            {
-                return;
-            }
-            var dict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
-            using var tx = StateManager.CreateTransaction();
-
-            foreach (var exEntity in externalStorageEntities)
-            {
-                var appModel = DTOConverter.AzureToAppModel(exEntity);
-                var dictKey = $"{appModel.Type}{appModel.Email}";
-                var created = await dict.AddOrUpdateAsync(tx, dictKey, appModel, (key, value) => value);
-            }
-
-            await tx.CommitAsync();
+            await userSync.SyncDictWithAzureTable();
+            await driverSync.SyncDictWithAzureTable();
         }
 
         /// <summary>
@@ -175,7 +156,7 @@ namespace TaxiData
 
             var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
 
-            await FillDictionaryWithExternalStorage();
+            await SyncDictWithAzureTable();
 
             var periodicTask = RunPeriodicalUpdate(cancellationToken);
 
