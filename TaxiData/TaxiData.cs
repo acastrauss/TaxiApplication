@@ -16,6 +16,7 @@ using Azure.Data.Tables;
 using System.Diagnostics;
 using Models.Blob;
 using TaxiData.DataImplementations;
+using Models.UserTypes;
 
 namespace TaxiData
 {
@@ -29,9 +30,6 @@ namespace TaxiData
         
         private IDTOConverter<AzureStorageWrapper.Entities.User, UserProfile> UserDTOConverter;
         private IDTOConverter<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> DriverDTOConverter;
-
-        private readonly string usersDictionaryName = "usersDictionary";
-        private readonly string driversDictionaryName = "driversDictionary";
 
         private readonly Synchronizer<AzureStorageWrapper.Entities.User, Models.Auth.UserProfile> userSync;
         private readonly Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> driverSync;
@@ -47,13 +45,13 @@ namespace TaxiData
             driverTableStorageWrapper = driverStorageWrapper;
             UserDTOConverter = new UserDTO();
             DriverDTOConverter = new DriverDTO();
-            userSync = new Synchronizer<AzureStorageWrapper.Entities.User, UserProfile>(userStorageWrapper, usersDictionaryName, UserDTOConverter, StateManager);
-            driverSync = new Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver>(driverStorageWrapper, driversDictionaryName, DriverDTOConverter, StateManager);
+            userSync = new Synchronizer<AzureStorageWrapper.Entities.User, UserProfile>(userStorageWrapper, typeof(UserProfile).Name, UserDTOConverter, StateManager);
+            driverSync = new Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver>(driverStorageWrapper, typeof(Models.UserTypes.Driver).Name, DriverDTOConverter, StateManager);
         }
 
         public async Task<bool> Exists(string partitionKey, string rowKey)
         {
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
             using var tx = StateManager.CreateTransaction();
             var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
             await tx.CommitAsync();
@@ -62,7 +60,7 @@ namespace TaxiData
 
         public async Task<bool> ExistsWithPwd(string partitionKey, string rowKey, string password)
         {
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
             using var tx = StateManager.CreateTransaction();
             var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
             await tx.CommitAsync();
@@ -77,7 +75,7 @@ namespace TaxiData
 
         public async Task<bool> ExistsSocialMediaAuth(string partitionKey, string rowKey)
         {
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
             using var tx = StateManager.CreateTransaction();
             var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
             await tx.CommitAsync();
@@ -89,9 +87,9 @@ namespace TaxiData
             return false;
         }
 
-        public async Task<bool> Create(UserProfile appModel)
+        public async Task<bool> Create<T>(T appModel) where T: UserProfile
         {
-            var dict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(usersDictionaryName);
+            var dict = await StateManager.GetOrAddAsync<IReliableDictionary<string, T>>(typeof(T).Name);
             using var tx = StateManager.CreateTransaction();
             var dictKey = $"{appModel.Type.ToString()}{appModel.Email}";
             var created = await dict.AddOrUpdateAsync(tx, dictKey, appModel, (key, value) => value);
@@ -101,7 +99,20 @@ namespace TaxiData
 
         public async Task<bool> CreateUser(UserProfile appModel)
         {
-            return await Create(appModel);
+            var userCreated = await Create(appModel);
+            
+            return userCreated;
+        }
+        public async Task<bool> CreateDriver(Driver appModel)
+        {
+            var userCreated = await Create<UserProfile>(appModel);
+            if (userCreated)
+            {
+                var newDriver = new Models.UserTypes.Driver(appModel, Models.UserTypes.DriverStatus.NOT_VERIFIED);
+                userCreated = await Create(newDriver);
+            }
+
+            return userCreated;
         }
 
         private async Task SyncAzureTablesWithDict()

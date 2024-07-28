@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Models.UserTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -15,6 +16,7 @@ namespace Models.Auth
     }
 
     [DataContract]
+    [KnownType(typeof(Driver))]
     public class UserProfile
     {
         [DataMember]

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ServiceModel;
 using Models.Blob;
+using Models.UserTypes;
 
 namespace Contracts.Database
 {
@@ -21,6 +22,9 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<bool> CreateUser(UserProfile appModel);
+
+        [OperationContract]
+        Task<bool> CreateDriver(Driver appModel);
 
         [OperationContract]
         Task<bool> ExistsSocialMediaAuth(string partitionKey, string rowKey);

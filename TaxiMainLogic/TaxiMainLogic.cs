@@ -60,6 +60,12 @@ namespace TaxiMainLogic
                 return false;
             }
 
+            if(userProfile.Type == UserType.DRIVER)
+            {
+                var newDriver = new Models.UserTypes.Driver(userProfile, Models.UserTypes.DriverStatus.NOT_VERIFIED);
+                return await authDBService.CreateDriver(newDriver);
+            }
+
             return await authDBService.CreateUser(userProfile);
         }
 
