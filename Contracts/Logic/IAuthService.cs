@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.ServiceModel;
 using Microsoft.ServiceFabric.Services.Remoting;
 using Models.Auth;
+using Models.UserTypes;
 
 namespace Contracts.Logic
 {
@@ -17,5 +18,11 @@ namespace Contracts.Logic
 
         [OperationContract]
         Task<bool> Register(UserProfile userProfile);
+
+        [OperationContract]
+        Task<DriverStatus> GetDriverStatus(string driverEmail);
+
+        [OperationContract]
+        Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status);
     }
 }

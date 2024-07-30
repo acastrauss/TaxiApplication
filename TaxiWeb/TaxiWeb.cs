@@ -100,14 +100,15 @@ namespace TaxiWeb
                         })
                         .AddJwtBearer(x =>
                         {
-                            x.RequireHttpsMetadata = false;
-                            x.SaveToken = false;
                             x.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                             {
+                                ValidateIssuer = true,
+                                ValidateAudience = true,
+                                ValidateLifetime = true,
                                 ValidateIssuerSigningKey = true,
+                                ValidIssuer = "taxi-api",
+                                ValidAudience = "taxi-app",
                                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                                ValidateIssuer = false,
-                                ValidateAudience = false
                             };
                         });
                         
@@ -119,6 +120,7 @@ namespace TaxiWeb
                         var app = builder.Build();
                         // Configure the HTTP request pipeline.
                         app.UseCors("AllowSpecificOrigins");
+                        app.UseAuthentication();
                         app.UseAuthorization();
                         
                         app.MapControllers();

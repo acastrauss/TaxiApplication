@@ -27,5 +27,11 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<bool> ExistsSocialMediaAuth(string partitionKey, string rowKey);
+
+        [OperationContract]
+        Task<DriverStatus> GetDriverStatus(string driverEmail);
+
+        [OperationContract]
+        Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status);
     }
 }

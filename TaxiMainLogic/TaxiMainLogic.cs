@@ -11,6 +11,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Models.Auth;
+using Models.UserTypes;
 
 namespace TaxiMainLogic
 {
@@ -25,6 +26,16 @@ namespace TaxiMainLogic
             : base(context)
         {
             this.authDBService = authDBService;
+        }
+
+        public async Task<DriverStatus> GetDriverStatus(string driverEmail)
+        {
+            return await authDBService.GetDriverStatus(driverEmail);
+        }
+
+        public async Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status)
+        {
+            return await authDBService.UpdateDriverStatus(driverEmail, status);
         }
 
         public async Task<Tuple<bool, UserType>> Login(LoginData loginData)

@@ -1,4 +1,5 @@
 ﻿using Contracts.Logic;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -33,6 +34,18 @@ namespace TaxiWeb.Controllers
         {
             return Ok();
         }
+        
+        [HttpGet]
+        [Route("jwt-check")]
+        [Authorize]
+        public async Task<IActionResult> CheckJwt()
+        {
+            var userEmail = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+            var userType = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+            var token = await HttpContext.GetTokenAsync("access_token");
+            return Ok();
+        }
+
 
         // POST api/<AuthController>/register
         [HttpPost]
@@ -72,7 +85,9 @@ namespace TaxiWeb.Controllers
                     new Claim(ClaimTypes.Role, userExists.Item2.ToString()) 
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Audience="taxi-app",
+                Issuer="taxi-api"
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);

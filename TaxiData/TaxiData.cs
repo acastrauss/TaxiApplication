@@ -11,7 +11,6 @@ using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Models.Auth;
 using AzureStorageWrapper.DTO;
-using AzureStorageWrapper;
 using Azure.Data.Tables;
 using System.Diagnostics;
 using TaxiData.DataImplementations;
@@ -24,8 +23,8 @@ namespace TaxiData
     /// </summary>
     internal sealed class TaxiData : StatefulService, IAuthDBService 
     {
-        private AzureStorageWrapper<AzureStorageWrapper.Entities.User> userTableStorageWrapper;
-        private AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverTableStorageWrapper;
+        private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userTableStorageWrapper;
+        private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverTableStorageWrapper;
         
         private IDTOConverter<AzureStorageWrapper.Entities.User, UserProfile> UserDTOConverter;
         private IDTOConverter<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> DriverDTOConverter;
@@ -35,8 +34,8 @@ namespace TaxiData
 
         public TaxiData(
             StatefulServiceContext context,
-            AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
-            AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper
         )
             : base(context)
         {
@@ -47,6 +46,8 @@ namespace TaxiData
             userSync = new Synchronizer<AzureStorageWrapper.Entities.User, UserProfile>(userStorageWrapper, typeof(UserProfile).Name, UserDTOConverter, StateManager);
             driverSync = new Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver>(driverStorageWrapper, typeof(Models.UserTypes.Driver).Name, DriverDTOConverter, StateManager);
         }
+
+        #region AuthMethods
 
         public async Task<bool> Exists(string partitionKey, string rowKey)
         {
@@ -114,6 +115,10 @@ namespace TaxiData
             return userCreated;
         }
 
+        #endregion
+
+        #region SyncMethods
+
         private async Task SyncAzureTablesWithDict()
         {
             await userSync.SyncAzureTablesWithDict();
@@ -141,6 +146,9 @@ namespace TaxiData
             await driverSync.SyncDictWithAzureTable();
         }
 
+        #endregion
+
+        #region ServiceFabricMethods
         /// <summary>
         /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
         /// </summary>
@@ -197,5 +205,41 @@ namespace TaxiData
 
             }
         }
+
+        #endregion
+
+        #region DriverMethods
+        public async Task<DriverStatus> GetDriverStatus(string driverEmail)
+        {
+            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Driver>>(typeof(Driver).Name);
+            using var tx = StateManager.CreateTransaction();
+
+            var existingDriver = await driversDict.TryGetValueAsync(tx, $"{UserType.DRIVER}{driverEmail}");
+            await tx.CommitAsync();
+
+            if (!existingDriver.HasValue)
+            {
+                return default;
+            }
+
+            return existingDriver.Value.Status;
+        }
+
+
+        public async Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status)
+        {
+            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Driver>>(typeof(Driver).Name);
+            using var tx = StateManager.CreateTransaction();
+            var existingDriver = await driversDict.TryGetValueAsync(tx, $"{UserType.DRIVER}{driverEmail}");
+            if (!existingDriver.HasValue)
+            {
+                return false;
+            }
+            existingDriver.Value.Status = status;
+            var result = await driversDict.TryUpdateAsync(tx, $"{UserType.DRIVER}{driverEmail}", existingDriver.Value, existingDriver.Value);
+            await tx.CommitAsync();
+            return result;
+        }
+        #endregion
     }
 }
