@@ -86,8 +86,8 @@ namespace TaxiWeb.Controllers
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Audience="taxi-app",
-                Issuer="taxi-api"
+                Audience=jwtConfig.Value.Audience,
+                Issuer=jwtConfig.Value.Issuer
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);

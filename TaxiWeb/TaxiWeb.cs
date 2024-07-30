@@ -91,7 +91,10 @@ namespace TaxiWeb
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
                         var proxy = ServiceProxy.Create<IAuthService>(new Uri("fabric:/TaxiApplication/TaxiMainLogic"));
                         builder.Services.AddSingleton<IAuthService>(proxy);
-                        
+
+                        var jwtAudience = builder.Configuration.GetSection("JWT").GetValue<string>("Audience");
+                        var jwtIssuer = builder.Configuration.GetSection("JWT").GetValue<string>("Issuer");
+
                         var key = Encoding.ASCII.GetBytes(jwtSecret);
                         builder.Services.AddAuthentication(x =>
                         {
@@ -106,8 +109,8 @@ namespace TaxiWeb
                                 ValidateAudience = true,
                                 ValidateLifetime = true,
                                 ValidateIssuerSigningKey = true,
-                                ValidIssuer = "taxi-api",
-                                ValidAudience = "taxi-app",
+                                ValidIssuer = jwtIssuer,
+                                ValidAudience = jwtAudience,
                                 IssuerSigningKey = new SymmetricSecurityKey(key),
                             };
                         });
