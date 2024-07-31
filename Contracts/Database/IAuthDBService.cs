@@ -36,5 +36,8 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<IEnumerable<Driver>> ListAllDrivers();
+
+        [OperationContract]
+        Task<Models.Ride.Ride> CreateRide(Models.Ride.Ride ride);
     }
 }

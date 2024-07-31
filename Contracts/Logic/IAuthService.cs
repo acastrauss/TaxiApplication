@@ -30,6 +30,9 @@ namespace Contracts.Logic
         Task<IEnumerable<Driver>> ListAllDrivers();
 
         [OperationContract]
-        Task<EstimateRideResponse> EstimateRide(EstimateRideRequest request);  
+        Task<EstimateRideResponse> EstimateRide(EstimateRideRequest request);
+
+        [OperationContract]
+        Task<Ride> CreateRide(CreateRideRequest request);
     }
 }

@@ -15,6 +15,7 @@ using Azure.Data.Tables;
 using System.Diagnostics;
 using TaxiData.DataImplementations;
 using Models.UserTypes;
+using Models.Ride;
 
 namespace TaxiData
 {
@@ -25,26 +26,33 @@ namespace TaxiData
     {
         private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userTableStorageWrapper;
         private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverTableStorageWrapper;
+        private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideTableStorageWrapper;
         
         private IDTOConverter<AzureStorageWrapper.Entities.User, UserProfile> UserDTOConverter;
         private IDTOConverter<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> DriverDTOConverter;
+        private IDTOConverter<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride> RideDTOConverter;
 
         private readonly Synchronizer<AzureStorageWrapper.Entities.User, Models.Auth.UserProfile> userSync;
         private readonly Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> driverSync;
+        private readonly Synchronizer<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride> rideSync;
 
         public TaxiData(
             StatefulServiceContext context,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper
         )
             : base(context)
         {
             userTableStorageWrapper = userStorageWrapper;
             driverTableStorageWrapper = driverStorageWrapper;
+            rideTableStorageWrapper = rideStorageWrapper;
             UserDTOConverter = new UserDTO();
             DriverDTOConverter = new DriverDTO();
+            RideDTOConverter = new RideDTO();
             userSync = new Synchronizer<AzureStorageWrapper.Entities.User, UserProfile>(userStorageWrapper, typeof(UserProfile).Name, UserDTOConverter, StateManager);
             driverSync = new Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver>(driverStorageWrapper, typeof(Models.UserTypes.Driver).Name, DriverDTOConverter, StateManager);
+            rideSync = new Synchronizer<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride>(rideStorageWrapper, typeof(Models.Ride.Ride).Name, RideDTOConverter, StateManager);
         }
 
         #region AuthMethods
@@ -123,6 +131,7 @@ namespace TaxiData
         {
             await userSync.SyncAzureTablesWithDict();
             await driverSync.SyncAzureTablesWithDict();
+            await rideSync.SyncAzureTablesWithDict();
         }
 
         private async Task RunPeriodicalUpdate(CancellationToken cancellationToken)
@@ -144,6 +153,7 @@ namespace TaxiData
         {
             await userSync.SyncDictWithAzureTable();
             await driverSync.SyncDictWithAzureTable();
+            await rideSync.SyncDictWithAzureTable();
         }
 
         #endregion
@@ -264,6 +274,23 @@ namespace TaxiData
 
             await tx.CommitAsync();
             return drivers;
+        }
+
+        #endregion
+
+        #region RideMethods
+
+        public async Task<Ride> CreateRide(Ride ride)
+        {
+            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Ride>>(typeof(Ride).Name);
+            using var tx = StateManager.CreateTransaction();
+
+            var rideKey = $"{ride.ClientEmail}{ride.CreatedAtTimestamp}";
+
+            var res = await rideDict.AddOrUpdateAsync(tx, rideKey, ride, (key, value) => value);
+            await tx.CommitAsync();
+
+            return res;
         }
         #endregion
     }

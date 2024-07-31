@@ -26,13 +26,16 @@ namespace TaxiData
                     context =>
                     {
                         var azureTableConnString = context.CodePackageActivationContext.GetConfigurationPackageObject("Config").Settings.Sections["Database"].Parameters["AzureTableConnectionString"].Value;
-                        AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper = 
+                        var userStorageWrapper = 
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User>(azureTableConnString, "user");
 
-                        AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper =
+                        var driverStorageWrapper =
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver>(azureTableConnString, "driver");
 
-                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper);
+                        var rideStorageWrapper =
+                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride>(azureTableConnString, "ride");
+
+                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper, rideStorageWrapper);
                     }
                     
                     

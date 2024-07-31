@@ -55,5 +55,26 @@ namespace TaxiWeb.Controllers
 
             return Ok(await authService.EstimateRide(request));
         }
+
+        [HttpPost]
+        [Authorize]
+        [Route("create-ride")]
+        public async Task<IActionResult> CreateRide([FromBody] CreateRideRequest request)
+        {
+            // TO DO: Take client email from JWT
+            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.CLIENT }))
+            {
+                return Unauthorized();
+            }
+
+            var res = await authService.CreateRide(request);
+
+            if (res == null) 
+            {
+                return BadRequest("Failed to create ride");
+            }
+
+            return Ok(res);
+        }
     }
 }

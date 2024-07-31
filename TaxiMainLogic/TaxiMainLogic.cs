@@ -133,13 +133,24 @@ namespace TaxiMainLogic
                 new EstimateRideResponse()
                 {
                     PriceEstimate = randomGen.NextSingle() * 1000,
-                    TimeEstimate = new TimeEstimate()
-                    {
-                        Hours = 0,
-                        Minutes = randomGen.Next(60),
-                        Seconds = randomGen.Next(60)
-                    }
+                    TimeEstimateSeconds = randomGen.Next(60 * 60) // Max 1 hour
                 });
+        }
+
+        public async Task<Ride> CreateRide(CreateRideRequest request)
+        {
+            var newRide = new Models.Ride.Ride()
+            {
+                ClientEmail = request.ClientEmail,
+                CreatedAtTimestamp = DateTime.Now.Ticks,
+                DriverEmail = null,
+                EndAddress = request.EndAddress,
+                StartAddress = request.StartAddress,
+                Price = request.Price,
+                Status = RideStatus.CREATED
+            };
+
+            return await authDBService.CreateRide(newRide);
         }
         #endregion
     }
