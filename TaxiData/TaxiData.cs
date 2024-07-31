@@ -229,6 +229,8 @@ namespace TaxiData
         public async Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status)
         {
             var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Driver>>(typeof(Driver).Name);
+            // TO DO: Maybe move this transaction after read (possibly not needed here)
+            // All do that for other examples as well
             using var tx = StateManager.CreateTransaction();
             var existingDriver = await driversDict.TryGetValueAsync(tx, $"{UserType.DRIVER}{driverEmail}");
             if (!existingDriver.HasValue)
@@ -239,6 +241,29 @@ namespace TaxiData
             var result = await driversDict.TryUpdateAsync(tx, $"{UserType.DRIVER}{driverEmail}", existingDriver.Value, existingDriver.Value);
             await tx.CommitAsync();
             return result;
+        }
+
+        public async Task<IEnumerable<Driver>> ListAllDrivers()
+        {
+            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Driver>>(typeof(Driver).Name);
+            using var tx = StateManager.CreateTransaction();
+    
+            var collectionEnum = await driversDict.CreateEnumerableAsync(tx);
+            var asyncEnum = collectionEnum.GetAsyncEnumerator();
+
+            var drivers = new List<Driver>();
+
+            while (await asyncEnum.MoveNextAsync(default))
+            {
+                var driverEntity = asyncEnum.Current.Value;
+                if (driverEntity != null) 
+                {
+                    drivers.Add(driverEntity);
+                } 
+            }
+
+            await tx.CommitAsync();
+            return drivers;
         }
         #endregion
     }

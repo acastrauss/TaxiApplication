@@ -7,6 +7,7 @@ using System.ServiceModel;
 using Microsoft.ServiceFabric.Services.Remoting;
 using Models.Auth;
 using Models.UserTypes;
+using Models.Ride;
 
 namespace Contracts.Logic
 {
@@ -24,5 +25,11 @@ namespace Contracts.Logic
 
         [OperationContract]
         Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status);
+
+        [OperationContract]
+        Task<IEnumerable<Driver>> ListAllDrivers();
+
+        [OperationContract]
+        Task<EstimateRideResponse> EstimateRide(EstimateRideRequest request);  
     }
 }

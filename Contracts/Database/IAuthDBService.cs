@@ -33,5 +33,8 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status);
+
+        [OperationContract]
+        Task<IEnumerable<Driver>> ListAllDrivers();
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Models.Auth;
+using Models.Ride;
 using Models.UserTypes;
 
 namespace TaxiMainLogic
@@ -28,6 +29,8 @@ namespace TaxiMainLogic
             this.authDBService = authDBService;
         }
 
+        #region DriverMethods
+
         public async Task<DriverStatus> GetDriverStatus(string driverEmail)
         {
             return await authDBService.GetDriverStatus(driverEmail);
@@ -37,6 +40,15 @@ namespace TaxiMainLogic
         {
             return await authDBService.UpdateDriverStatus(driverEmail, status);
         }
+
+        public async Task<IEnumerable<Driver>> ListAllDrivers()
+        {
+            return await authDBService.ListAllDrivers();
+        }
+
+        #endregion
+
+        #region AuthMethods
 
         public async Task<Tuple<bool, UserType>> Login(LoginData loginData)
         {
@@ -79,6 +91,9 @@ namespace TaxiMainLogic
             return await authDBService.CreateUser(userProfile);
         }
 
+        #endregion
+
+        #region ServiceFabricMethods
         /// <summary>
         /// Optional override to create listeners (e.g., TCP, HTTP) for this service replica to handle client or user requests.
         /// </summary>
@@ -105,5 +120,27 @@ namespace TaxiMainLogic
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
         }
+
+        #endregion
+
+        #region RideMethods
+
+        public Task<EstimateRideResponse> EstimateRide(EstimateRideRequest request)
+        {
+            var randomGen = new Random();
+
+            return Task.FromResult(
+                new EstimateRideResponse()
+                {
+                    PriceEstimate = randomGen.NextSingle() * 1000,
+                    TimeEstimate = new TimeEstimate()
+                    {
+                        Hours = 0,
+                        Minutes = randomGen.Next(60),
+                        Seconds = randomGen.Next(60)
+                    }
+                });
+        }
+        #endregion
     }
 }

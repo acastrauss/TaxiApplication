@@ -7,9 +7,9 @@ using Models.Auth;
 using Models.UserTypes;
 using System.Security.Claims;
 using TaxiWeb.Models;
-using static TaxiWeb.DriverController;
+using static TaxiWeb.Controllers.DriverController;
 
-namespace TaxiWeb
+namespace TaxiWeb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -61,7 +61,7 @@ namespace TaxiWeb
                 return Unauthorized();
             }
 
-            var driverStatus = await this.authService.GetDriverStatus(driverEmail.Email);
+            var driverStatus = await authService.GetDriverStatus(driverEmail.Email);
 
             return Ok(driverStatus);
         }
@@ -77,14 +77,27 @@ namespace TaxiWeb
         [Route("driver-status")]
         public async Task<IActionResult> UpdateDriverStatus([FromBody] UpdateDriverStatusData updateData)
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN}))
+            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN }))
             {
                 return Unauthorized();
             }
 
-            var result = await this.authService.UpdateDriverStatus(updateData.Email, updateData.Status);
+            var result = await authService.UpdateDriverStatus(updateData.Email, updateData.Status);
 
             return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("list-drivers")]
+        public async Task<IActionResult> ListAllDrivers()
+        {
+            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN }))
+            {
+                return Unauthorized();
+            }
+
+            return Ok(await authService.ListAllDrivers());
         }
     }
 }

@@ -32,7 +32,7 @@ namespace TaxiWeb.Controllers
         [AllowAnonymous]
         public IActionResult Get()
         {
-            return Ok();
+            return Ok("RADI!");
         }
         
         [HttpGet]
