@@ -40,5 +40,12 @@ namespace Contracts.Logic
 
         [OperationContract]
         Task<IEnumerable<Ride>> GetNewRides();
+
+        [OperationContract]
+        Task<IEnumerable<Ride>> GetUsersRides(string userEmail, UserType userType);
+
+        [OperationContract]
+        Task<IEnumerable<Ride>> GetAllRides();
+
     }
 }

@@ -165,6 +165,34 @@ namespace TaxiMainLogic
                 Status = RideStatus.CREATED
             });
         }
+
+        public async Task<IEnumerable<Ride>> GetUsersRides(string userEmail, UserType userType)
+        {
+            switch (userType)
+            {
+
+                case UserType.CLIENT:
+                    return await authDBService.GetRides(new QueryRideParams()
+                    {
+                        ClientEmail = userEmail,
+                        Status = RideStatus.COMPLETED
+                    });
+                case UserType.DRIVER:
+                    return await authDBService.GetRides(new QueryRideParams()
+                    {
+                        DriverEmail = userEmail,
+                        Status = RideStatus.COMPLETED
+                    });
+                case UserType.ADMIN:
+                default:
+                    return await GetAllRides();
+            }
+        }
+
+        public async Task<IEnumerable<Ride>> GetAllRides()
+        {
+            return await authDBService.GetRides(default);
+        }
         #endregion
     }
 }

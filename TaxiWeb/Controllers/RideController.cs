@@ -131,5 +131,28 @@ namespace TaxiWeb.Controllers
 
             return Ok(await authService.GetNewRides());
         }
+
+        [HttpGet]
+        [Authorize]
+        [Route("get-user-rides")]
+        public async Task<IActionResult> GetUserRides()
+        {
+            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+
+            if (userEmailClaim == null || userTypeClaim == null)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
+
+            if (!isParsed)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            return Ok(await authService.GetUsersRides(userEmailClaim.Value, userType));
+        }
     }
 }
