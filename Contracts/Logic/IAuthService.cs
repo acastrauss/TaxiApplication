@@ -33,9 +33,12 @@ namespace Contracts.Logic
         Task<EstimateRideResponse> EstimateRide(EstimateRideRequest request);
 
         [OperationContract]
-        Task<Ride> CreateRide(CreateRideRequest request);
+        Task<Ride> CreateRide(CreateRideRequest request, string clientEmail);
 
         [OperationContract]
-        Task<Ride> UpdateRide(UpdateRideRequest request);
+        Task<Ride> UpdateRide(UpdateRideRequest request, string driverEmail);
+
+        [OperationContract]
+        Task<IEnumerable<Ride>> GetNewRides();
     }
 }

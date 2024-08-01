@@ -294,7 +294,7 @@ namespace TaxiData
             return res;
         }
 
-        public async Task<Models.Ride.Ride> UpdateRide(UpdateRideRequest updateRide)
+        public async Task<Models.Ride.Ride> UpdateRide(UpdateRideRequest updateRide, string driverEmail)
         {
             var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
             using var tx = StateManager.CreateTransaction();
@@ -310,7 +310,7 @@ namespace TaxiData
             existing.Value.Status = updateRide.Status;
             if(updateRide.Status == RideStatus.ACCEPTED)
             {
-                existing.Value.DriverEmail = updateRide.DriverEmail;
+                existing.Value.DriverEmail = driverEmail;
             }
 
             var res = await rideDict.AddOrUpdateAsync(tx, rideKey, existing.Value, (key, value) => value);
@@ -318,6 +318,42 @@ namespace TaxiData
             await tx.CommitAsync();
 
             return res;
+        }
+
+        public async Task<IEnumerable<Models.Ride.Ride>> GetRides(QueryRideParams? queryParams)
+        {
+            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
+            using var tx = StateManager.CreateTransaction();
+
+            var collectionEnum = await rideDict.CreateEnumerableAsync(tx);
+            var asyncEnum = collectionEnum.GetAsyncEnumerator();
+
+            var rides = new List<Models.Ride.Ride>();
+
+            while (await asyncEnum.MoveNextAsync(default))
+            {
+                var rideEntity = asyncEnum.Current.Value;
+                if (rideEntity != null)
+                {
+                    if (queryParams != null)
+                    {
+                        bool shouldAdd = (queryParams.Status == null) || (queryParams.Status == rideEntity.Status);
+                        shouldAdd &= (queryParams.ClientEmail == null) || (queryParams.ClientEmail == rideEntity.ClientEmail);
+                        shouldAdd &= (queryParams.DriverEmail == null) || (queryParams.DriverEmail == rideEntity.DriverEmail);
+                        if (shouldAdd)
+                        {
+                            rides.Add(rideEntity);
+                        }
+                    }
+                    else
+                    {
+                        rides.Add(rideEntity);
+                    }
+                }
+            }
+
+            await tx.CommitAsync();
+            return rides;
         }
         #endregion
     }

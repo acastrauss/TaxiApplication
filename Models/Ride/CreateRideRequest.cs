@@ -24,11 +24,6 @@ namespace Models.Ride
         
         [DataMember]
         [Required]
-        [EmailAddress]
-        public string ClientEmail { get; set; }
-
-        [DataMember]
-        [Required]
         [Range(0, float.MaxValue, ErrorMessage = "Please enter a value bigger than 0")]
         public float Price { get; set; }
     }

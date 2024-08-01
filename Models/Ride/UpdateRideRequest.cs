@@ -23,9 +23,5 @@ namespace Models.Ride
         [DataMember]
         [Required]
         public RideStatus Status { get; set; }
-
-        [DataMember]
-        // Should Not be required in HTTP request
-        public string DriverEmail { get; set; }
     }
 }

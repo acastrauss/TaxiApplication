@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ServiceModel;
 using Models.UserTypes;
+using Models.Ride;
 
 namespace Contracts.Database
 {
@@ -41,6 +42,9 @@ namespace Contracts.Database
         Task<Models.Ride.Ride> CreateRide(Models.Ride.Ride ride);
 
         [OperationContract]
-        Task<Models.Ride.Ride> UpdateRide(Models.Ride.UpdateRideRequest updateRide);
+        Task<Models.Ride.Ride> UpdateRide(Models.Ride.UpdateRideRequest updateRide, string driverEmail);
+
+        [OperationContract]
+        Task<IEnumerable<Models.Ride.Ride>> GetRides(Models.Ride.QueryRideParams? queryParams);
     }
 }

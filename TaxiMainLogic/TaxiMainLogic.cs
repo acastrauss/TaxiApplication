@@ -137,11 +137,11 @@ namespace TaxiMainLogic
                 });
         }
 
-        public async Task<Ride> CreateRide(CreateRideRequest request)
+        public async Task<Ride> CreateRide(CreateRideRequest request, string clientEmail)
         {
             var newRide = new Models.Ride.Ride()
             {
-                ClientEmail = request.ClientEmail,
+                ClientEmail = clientEmail,
                 CreatedAtTimestamp = DateTime.Now.Ticks,
                 DriverEmail = null,
                 EndAddress = request.EndAddress,
@@ -153,9 +153,17 @@ namespace TaxiMainLogic
             return await authDBService.CreateRide(newRide);
         }
 
-        public async Task<Ride> UpdateRide(UpdateRideRequest request)
+        public async Task<Ride> UpdateRide(UpdateRideRequest request, string driverEmail)
         {
-            return await authDBService.UpdateRide(request);
+            return await authDBService.UpdateRide(request, driverEmail);
+        }
+
+        public async Task<IEnumerable<Ride>> GetNewRides()
+        {
+            return await authDBService.GetRides(new QueryRideParams()
+            {
+                Status = RideStatus.CREATED
+            });
         }
         #endregion
     }
