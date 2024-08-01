@@ -16,6 +16,7 @@ using System.Diagnostics;
 using TaxiData.DataImplementations;
 using Models.UserTypes;
 using Models.Ride;
+using AzureStorageWrapper.Entities;
 
 namespace TaxiData
 {
@@ -111,7 +112,7 @@ namespace TaxiData
             
             return userCreated;
         }
-        public async Task<bool> CreateDriver(Driver appModel)
+        public async Task<bool> CreateDriver(Models.UserTypes.Driver appModel)
         {
             var userCreated = await Create<UserProfile>(appModel);
             if (userCreated)
@@ -221,7 +222,7 @@ namespace TaxiData
         #region DriverMethods
         public async Task<DriverStatus> GetDriverStatus(string driverEmail)
         {
-            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Driver>>(typeof(Driver).Name);
+            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.Driver>>(typeof(Models.UserTypes.Driver).Name);
             using var tx = StateManager.CreateTransaction();
 
             var existingDriver = await driversDict.TryGetValueAsync(tx, $"{UserType.DRIVER}{driverEmail}");
@@ -238,7 +239,7 @@ namespace TaxiData
 
         public async Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status)
         {
-            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Driver>>(typeof(Driver).Name);
+            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.Driver>>(typeof(Models.UserTypes.Driver).Name);
             // TO DO: Maybe move this transaction after read (possibly not needed here)
             // All do that for other examples as well
             using var tx = StateManager.CreateTransaction();
@@ -253,15 +254,15 @@ namespace TaxiData
             return result;
         }
 
-        public async Task<IEnumerable<Driver>> ListAllDrivers()
+        public async Task<IEnumerable<Models.UserTypes.Driver>> ListAllDrivers()
         {
-            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Driver>>(typeof(Driver).Name);
+            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.Driver>>(typeof(Models.UserTypes.Driver).Name);
             using var tx = StateManager.CreateTransaction();
     
             var collectionEnum = await driversDict.CreateEnumerableAsync(tx);
             var asyncEnum = collectionEnum.GetAsyncEnumerator();
 
-            var drivers = new List<Driver>();
+            var drivers = new List<Models.UserTypes.Driver>();
 
             while (await asyncEnum.MoveNextAsync(default))
             {
@@ -280,14 +281,40 @@ namespace TaxiData
 
         #region RideMethods
 
-        public async Task<Ride> CreateRide(Ride ride)
+        public async Task<Models.Ride.Ride> CreateRide(Models.Ride.Ride ride)
         {
-            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Ride>>(typeof(Ride).Name);
+            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
             using var tx = StateManager.CreateTransaction();
 
             var rideKey = $"{ride.ClientEmail}{ride.CreatedAtTimestamp}";
 
             var res = await rideDict.AddOrUpdateAsync(tx, rideKey, ride, (key, value) => value);
+            await tx.CommitAsync();
+
+            return res;
+        }
+
+        public async Task<Models.Ride.Ride> UpdateRide(UpdateRideRequest updateRide)
+        {
+            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
+            using var tx = StateManager.CreateTransaction();
+            var rideKey = $"{updateRide.ClientEmail}{updateRide.RideCreatedAtTimestamp}";
+
+            var existing = await rideDict.TryGetValueAsync(tx, rideKey);
+
+            if (!existing.HasValue)
+            {
+                return null;
+            }
+
+            existing.Value.Status = updateRide.Status;
+            if(updateRide.Status == RideStatus.ACCEPTED)
+            {
+                existing.Value.DriverEmail = updateRide.DriverEmail;
+            }
+
+            var res = await rideDict.AddOrUpdateAsync(tx, rideKey, existing.Value, (key, value) => value);
+
             await tx.CommitAsync();
 
             return res;

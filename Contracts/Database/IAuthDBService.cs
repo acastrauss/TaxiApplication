@@ -39,5 +39,8 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<Models.Ride.Ride> CreateRide(Models.Ride.Ride ride);
+
+        [OperationContract]
+        Task<Models.Ride.Ride> UpdateRide(Models.Ride.UpdateRideRequest updateRide);
     }
 }

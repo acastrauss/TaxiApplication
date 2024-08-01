@@ -76,5 +76,46 @@ namespace TaxiWeb.Controllers
 
             return Ok(res);
         }
+
+        [HttpPatch]
+        [Authorize]
+        [Route("update-ride-status")]
+        public async Task<IActionResult> AcceptRide([FromBody] UpdateRideRequest request)
+        {
+            // Client will update once ride is finished, Driver will update when accepting the ride
+            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.CLIENT, UserType.DRIVER }))
+            {
+                return Unauthorized();
+            }
+
+            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+
+            if (userEmailClaim == null || userTypeClaim == null) 
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
+
+            if (!isParsed)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var validUpdate = (userType == UserType.CLIENT && request.Status == RideStatus.COMPLETED) || (userType == UserType.DRIVER && request.Status == RideStatus.ACCEPTED);
+
+            if (!validUpdate)
+            {
+                return Unauthorized("Can not update ride with given parameters");
+            }
+
+            if (request.Status == RideStatus.ACCEPTED)
+            {
+                request.DriverEmail = userEmailClaim.Value;
+            }
+
+            return Ok(await authService.UpdateRide(request));
+        }
     }
 }

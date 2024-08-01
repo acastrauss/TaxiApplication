@@ -34,5 +34,8 @@ namespace Contracts.Logic
 
         [OperationContract]
         Task<Ride> CreateRide(CreateRideRequest request);
+
+        [OperationContract]
+        Task<Ride> UpdateRide(UpdateRideRequest request);
     }
 }

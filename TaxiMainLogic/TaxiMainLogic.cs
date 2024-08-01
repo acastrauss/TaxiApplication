@@ -152,6 +152,11 @@ namespace TaxiMainLogic
 
             return await authDBService.CreateRide(newRide);
         }
+
+        public async Task<Ride> UpdateRide(UpdateRideRequest request)
+        {
+            return await authDBService.UpdateRide(request);
+        }
         #endregion
     }
 }
