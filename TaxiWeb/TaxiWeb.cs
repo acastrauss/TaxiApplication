@@ -127,8 +127,12 @@ namespace TaxiWeb
                         app.UseAuthorization();
                         
                         app.MapControllers();
-                        
-                        
+
+                        //app.UseSwagger();
+                        //app.UseSwaggerUI();
+                        //app.MapSwagger().RequireAuthorization();
+
+
                         return app;
 
 

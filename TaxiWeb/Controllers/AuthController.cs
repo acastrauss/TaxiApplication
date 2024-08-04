@@ -46,6 +46,51 @@ namespace TaxiWeb.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Authorize]
+        [Route("profile")]
+        public async Task<IActionResult> GetUserProfile()
+        {
+            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+
+            if (userEmailClaim == null || userTypeClaim == null)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
+
+            if (!isParsed)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            return Ok(await authService.GetUserProfile(userEmailClaim.Value, userType));
+        }
+
+        [HttpPatch]
+        [Authorize]
+        [Route("update-profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfileRequest updateProfileRequest)
+        {
+            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+
+            if (userEmailClaim == null || userTypeClaim == null)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
+
+            if (!isParsed)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            return Ok(await authService.UpdateUserProfile(updateProfileRequest, userEmailClaim.Value, userType));
+        }
 
         // POST api/<AuthController>/register
         [HttpPost]

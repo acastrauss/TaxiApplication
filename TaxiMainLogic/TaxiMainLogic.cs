@@ -91,6 +91,17 @@ namespace TaxiMainLogic
             return await authDBService.CreateUser(userProfile);
         }
 
+
+        public async Task<UserProfile> GetUserProfile(string userEmail, UserType userType)
+        {
+            return await authDBService.GetUserProfile(userType.ToString(), userEmail);
+        }
+
+        public async Task<UserProfile> UpdateUserProfile(UpdateUserProfileRequest updateUserProfileRequest, string userEmail, UserType userType)
+        {
+            return await authDBService.UpdateUserProfile(updateUserProfileRequest, userType.ToString(), userEmail);
+        }
+
         #endregion
 
         #region ServiceFabricMethods
@@ -193,6 +204,7 @@ namespace TaxiMainLogic
         {
             return await authDBService.GetRides(default);
         }
+
         #endregion
     }
 }

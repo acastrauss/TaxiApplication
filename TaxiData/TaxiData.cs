@@ -57,6 +57,58 @@ namespace TaxiData
         }
 
         #region AuthMethods
+        public async Task<UserProfile> UpdateUserProfile(UpdateUserProfileRequest request, string partitionKey, string rowKey)
+        {
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
+            using var tx = StateManager.CreateTransaction();
+            var key = $"{partitionKey}{rowKey}";
+            var existing = await usersDict.TryGetValueAsync(tx, key);
+
+            if (!existing.HasValue) 
+            {
+                return null;
+            }
+
+            if(request.Password != null)
+            {
+                existing.Value.Password = request.Password;
+            }
+
+            if (request.Username != null)
+            {
+                existing.Value.Username = request.Username;
+            }
+
+            if (request.Address != null)
+            {
+                existing.Value.Address = request.Address;
+            }
+
+            if (request.ImagePath != null)
+            {
+                existing.Value.ImagePath = request.ImagePath;
+            }
+
+            if (request.Fullname != null) 
+            {
+                existing.Value.Fullname = request.Fullname;
+            }
+
+            var updated = await usersDict.TryUpdateAsync(tx, key, existing.Value, existing.Value);
+
+            await tx.CommitAsync();
+
+            return updated ? existing.Value : null;
+        }
+
+        public async Task<UserProfile> GetUserProfile(string partitionKey, string rowKey)
+        {
+            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
+            using var tx = StateManager.CreateTransaction();
+            var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
+            await tx.CommitAsync();
+            return existing.Value;
+        }
 
         public async Task<bool> Exists(string partitionKey, string rowKey)
         {
@@ -355,6 +407,8 @@ namespace TaxiData
             await tx.CommitAsync();
             return rides;
         }
+
+
         #endregion
     }
 }

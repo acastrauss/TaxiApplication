@@ -21,6 +21,12 @@ namespace Contracts.Database
         Task<bool> ExistsWithPwd(string partitionKey, string rowKey, string password);
 
         [OperationContract]
+        Task<Models.Auth.UserProfile> GetUserProfile(string partitionKey, string rowKey);
+
+        [OperationContract]
+        Task<Models.Auth.UserProfile> UpdateUserProfile(UpdateUserProfileRequest request, string partitionKey, string rowKey);
+
+        [OperationContract]
         Task<bool> CreateUser(UserProfile appModel);
 
         [OperationContract]

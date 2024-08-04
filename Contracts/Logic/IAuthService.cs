@@ -21,6 +21,12 @@ namespace Contracts.Logic
         Task<bool> Register(UserProfile userProfile);
 
         [OperationContract]
+        Task<UserProfile> GetUserProfile(string userEmail, UserType userType);
+
+        [OperationContract]
+        Task<UserProfile> UpdateUserProfile(UpdateUserProfileRequest updateUserProfileRequest, string userEmail, UserType userType);
+
+        [OperationContract]
         Task<DriverStatus> GetDriverStatus(string driverEmail);
 
         [OperationContract]
