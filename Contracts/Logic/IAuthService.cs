@@ -8,6 +8,7 @@ using Microsoft.ServiceFabric.Services.Remoting;
 using Models.Auth;
 using Models.UserTypes;
 using Models.Ride;
+using Models.Email;
 
 namespace Contracts.Logic
 {
@@ -52,6 +53,9 @@ namespace Contracts.Logic
 
         [OperationContract]
         Task<IEnumerable<Ride>> GetAllRides();
+
+        [OperationContract]
+        Task<bool> SendEmail(SendEmailRequest sendEmailRequest);
 
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using TaxiWeb.Models;
+using TaxiWeb.ConfigModels;
 
 namespace TaxiWeb.Controllers
 {

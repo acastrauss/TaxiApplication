@@ -10,7 +10,7 @@ namespace Models.Ride
 
     public class EstimateRideResponse
     {
-        public int TimeEstimateSeconds { get; set; }
+        public int EstimatedDriverArrivalSeconds { get; set; }
         public float PriceEstimate { get; set; }
     }
 }

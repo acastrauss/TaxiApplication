@@ -18,7 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
-using TaxiWeb.Models;
+using TaxiWeb.ConfigModels;
 
 namespace TaxiWeb
 {

@@ -26,5 +26,10 @@ namespace Models.Ride
         [Required]
         [Range(0, float.MaxValue, ErrorMessage = "Please enter a value bigger than 0")]
         public float Price { get; set; }
+
+        [DataMember]
+        [Required]
+        [Range(0, float.MaxValue, ErrorMessage = "Please enter a value bigger than 0")]
+        public int EstimatedDriverArrivalSeconds { get; set; }
     }
 }

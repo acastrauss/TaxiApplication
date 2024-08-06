@@ -5,12 +5,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Contracts.Database;
+using Contracts.Email;
 using Contracts.Logic;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Models.Auth;
+using Models.Email;
 using Models.Ride;
 using Models.UserTypes;
 
@@ -22,11 +24,13 @@ namespace TaxiMainLogic
     internal sealed class TaxiMainLogic : StatelessService, IAuthService
     {
         private IAuthDBService authDBService;
+        private IEmailService emailService;
 
-        public TaxiMainLogic(StatelessServiceContext context, IAuthDBService authDBService)
+        public TaxiMainLogic(StatelessServiceContext context, IAuthDBService authDBService, IEmailService emailService)
             : base(context)
         {
             this.authDBService = authDBService;
+            this.emailService = emailService;
         }
 
         #region DriverMethods
@@ -144,21 +148,25 @@ namespace TaxiMainLogic
                 new EstimateRideResponse()
                 {
                     PriceEstimate = randomGen.NextSingle() * 1000,
-                    TimeEstimateSeconds = randomGen.Next(60 * 60) // Max 1 hour
+                    EstimatedDriverArrivalSeconds = randomGen.Next(60 * 60) // Max 1 hour
                 });
         }
 
         public async Task<Ride> CreateRide(CreateRideRequest request, string clientEmail)
         {
+            var now = DateTime.UtcNow;
+
             var newRide = new Models.Ride.Ride()
             {
                 ClientEmail = clientEmail,
-                CreatedAtTimestamp = DateTime.Now.Ticks,
+                CreatedAtTimestamp = now.Ticks,
                 DriverEmail = null,
                 EndAddress = request.EndAddress,
                 StartAddress = request.StartAddress,
                 Price = request.Price,
-                Status = RideStatus.CREATED
+                Status = RideStatus.CREATED,
+                EstimatedDriverArrival = now.AddSeconds(request.EstimatedDriverArrivalSeconds),
+                EstimatedRideEnd = null
             };
 
             return await authDBService.CreateRide(newRide);
@@ -166,6 +174,22 @@ namespace TaxiMainLogic
 
         public async Task<Ride> UpdateRide(UpdateRideRequest request, string driverEmail)
         {
+            // Driver accepted the ride
+            if (request.Status == RideStatus.ACCEPTED)
+            {
+                var randomGen = new Random();
+
+                var rideWithTimeEstimate = new Models.Ride.UpdateRideWithTimeEstimate()
+                {
+                    ClientEmail = request.ClientEmail,
+                    RideCreatedAtTimestamp = request.RideCreatedAtTimestamp,
+                    Status = request.Status,
+                    RideEstimateSeconds = randomGen.Next(60 * 60)
+                };
+
+                return await authDBService.UpdateRide(rideWithTimeEstimate, driverEmail);
+            }
+
             return await authDBService.UpdateRide(request, driverEmail);
         }
 
@@ -205,6 +229,15 @@ namespace TaxiMainLogic
             return await authDBService.GetRides(default);
         }
 
+
+        #endregion
+
+        #region EmailMethods
+
+        public async Task<bool> SendEmail(SendEmailRequest sendEmailRequest)
+        {
+            return this.emailService.SendEmail(sendEmailRequest);
+        }
         #endregion
     }
 }

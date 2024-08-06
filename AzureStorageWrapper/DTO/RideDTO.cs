@@ -21,6 +21,8 @@ namespace AzureStorageWrapper.DTO
                 RowKey = appModel.CreatedAtTimestamp.ToString(),
                 StartAddress = appModel.StartAddress,
                 Status = (int)appModel.Status,
+                EstimatedDriverArrival = appModel.EstimatedDriverArrival,
+                EstimatedRideEnd = appModel.EstimatedRideEnd,
             };
         }
 
@@ -34,7 +36,9 @@ namespace AzureStorageWrapper.DTO
                 EndAddress = azureModel.EndAddress,
                 Price = azureModel.Price,
                 StartAddress = azureModel.StartAddress,
-                Status = (Models.Ride.RideStatus)azureModel.Status
+                Status = (Models.Ride.RideStatus)azureModel.Status,
+                EstimatedDriverArrival=azureModel.EstimatedDriverArrival,
+                EstimatedRideEnd=azureModel.EstimatedRideEnd,
             };
         }
     }

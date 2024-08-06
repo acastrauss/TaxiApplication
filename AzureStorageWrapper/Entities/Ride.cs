@@ -20,5 +20,7 @@ namespace AzureStorageWrapper.Entities
         public string? DriverEmail { get; set; }
         public int Status { get; set; }
         public float Price { get; set; }
+        public DateTime EstimatedDriverArrival { get; set; }
+        public DateTime? EstimatedRideEnd { get; set; }
     }
 }

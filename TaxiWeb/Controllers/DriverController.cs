@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Models.Auth;
 using Models.UserTypes;
 using System.Security.Claims;
-using TaxiWeb.Models;
 using static TaxiWeb.Controllers.DriverController;
 
 namespace TaxiWeb.Controllers
@@ -72,7 +71,8 @@ namespace TaxiWeb.Controllers
             public DriverStatus Status { get; set; }
         }
 
-        [HttpPost]
+        [HttpPatch]
+        // TO DO: Change to patch
         [Authorize]
         [Route("driver-status")]
         public async Task<IActionResult> UpdateDriverStatus([FromBody] UpdateDriverStatusData updateData)
@@ -83,6 +83,16 @@ namespace TaxiWeb.Controllers
             }
 
             var result = await authService.UpdateDriverStatus(updateData.Email, updateData.Status);
+
+            if (result)
+            {
+                await authService.SendEmail(new Models.Email.SendEmailRequest()
+                {
+                    Body = $"Your status on TaxiWeb application has been changed to {updateData.Status.ToString()}",
+                    EmailTo = "acastrauss@hotmail.com",
+                    Subject = "TaxiWeb status update"
+                });
+            }
 
             return Ok(result);
         }

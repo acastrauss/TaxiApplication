@@ -360,9 +360,11 @@ namespace TaxiData
             }
 
             existing.Value.Status = updateRide.Status;
-            if(updateRide.Status == RideStatus.ACCEPTED)
+
+            if(updateRide.Status == RideStatus.ACCEPTED && updateRide is UpdateRideWithTimeEstimate updateRideWithTime)
             {
                 existing.Value.DriverEmail = driverEmail;
+                existing.Value.EstimatedRideEnd = existing.Value.EstimatedDriverArrival.AddSeconds(updateRideWithTime.RideEstimateSeconds);
             }
 
             var res = await rideDict.AddOrUpdateAsync(tx, rideKey, existing.Value, (key, value) => value);

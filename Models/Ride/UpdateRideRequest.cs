@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Models.UserTypes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 namespace Models.Ride
 {
     [DataContract]
+    [KnownType(typeof(UpdateRideWithTimeEstimate))]
     public class UpdateRideRequest
     {
         [DataMember]
@@ -23,5 +25,12 @@ namespace Models.Ride
         [DataMember]
         [Required]
         public RideStatus Status { get; set; }
+    }
+
+    [DataContract]
+    public class UpdateRideWithTimeEstimate : UpdateRideRequest
+    {
+        [DataMember]
+        public int RideEstimateSeconds { get; set; }
     }
 }

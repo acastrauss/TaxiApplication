@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Models.UserTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -31,5 +32,9 @@ namespace Models.Ride
         public RideStatus Status { get; set; }
         [DataMember]
         public float Price { get; set; }
+        [DataMember]
+        public DateTime EstimatedDriverArrival {  get; set; }
+        [DataMember]
+        public DateTime? EstimatedRideEnd { get; set; }
     }
 }

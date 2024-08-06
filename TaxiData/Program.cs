@@ -25,7 +25,11 @@ namespace TaxiData
                 ServiceRuntime.RegisterServiceAsync("TaxiDataType",
                     context =>
                     {
-                        var azureTableConnString = context.CodePackageActivationContext.GetConfigurationPackageObject("Config").Settings.Sections["Database"].Parameters["AzureTableConnectionString"].Value;
+                        var azureTableConnString = context.CodePackageActivationContext.
+                            GetConfigurationPackageObject("Config")
+                            .Settings.Sections["Database"]
+                            .Parameters["AzureTableConnectionString"].Value;
+
                         var userStorageWrapper = 
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User>(azureTableConnString, "user");
 

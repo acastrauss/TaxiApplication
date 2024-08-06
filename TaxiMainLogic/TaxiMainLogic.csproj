@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.7.1.1" />
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="7.1.2175" />
     <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="7.1.2175" />
   </ItemGroup>

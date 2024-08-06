@@ -1,4 +1,4 @@
-﻿namespace TaxiWeb.Models
+﻿namespace TaxiWeb.ConfigModels
 {
     public class Config
     {

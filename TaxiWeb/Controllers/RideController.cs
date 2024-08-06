@@ -43,7 +43,7 @@ namespace TaxiWeb.Controllers
             return true;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
         [Route("estimate-ride")]
         public async Task<IActionResult> EstimateRide([FromBody] EstimateRideRequest request)
