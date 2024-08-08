@@ -154,5 +154,44 @@ namespace TaxiWeb.Controllers
 
             return Ok(await authService.GetUsersRides(userEmailClaim.Value, userType));
         }
+
+        [HttpPost]
+        [Authorize]
+        [Route("get-ride-status")]
+        public async Task<IActionResult> GetRideStatus([FromBody] GetRideStatusRequest getRideStatusRequest)
+        {
+            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+
+            if (userEmailClaim == null || userTypeClaim == null)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
+
+            if (!isParsed)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var ride = await authService.GetRideStatus(getRideStatusRequest.ClientEmail, getRideStatusRequest.RideCreatedAtTimestamp);
+
+            if(ride == null)
+            {
+                return BadRequest("Failed to get ride with those parameters");
+            }
+
+            var userIsDriverForRide = userType == UserType.DRIVER && userEmailClaim.Value.Equals(ride.DriverEmail);
+            var userIsClientForRide = userType == UserType.CLIENT && userEmailClaim.Value.Equals(ride.ClientEmail);
+            var userIsAdmin = userType == UserType.ADMIN;
+
+            if(!userIsClientForRide && !userIsDriverForRide && !userIsAdmin)
+            {
+                return Unauthorized("You can not see this ride.");
+            }
+
+            return Ok(ride.Status);
+        }
     }
 }

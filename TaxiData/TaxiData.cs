@@ -11,19 +11,16 @@ using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Models.Auth;
 using AzureStorageWrapper.DTO;
-using Azure.Data.Tables;
-using System.Diagnostics;
 using TaxiData.DataImplementations;
 using Models.UserTypes;
 using Models.Ride;
-using AzureStorageWrapper.Entities;
 
 namespace TaxiData
 {
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiData : StatefulService, IAuthDBService 
+    internal sealed class TaxiData : StatefulService, IAuthDBService
     {
         private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userTableStorageWrapper;
         private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverTableStorageWrapper;
@@ -298,6 +295,7 @@ namespace TaxiData
             var existingDriver = await driversDict.TryGetValueAsync(tx, $"{UserType.DRIVER}{driverEmail}");
             if (!existingDriver.HasValue)
             {
+                await tx.CommitAsync();
                 return false;
             }
             existingDriver.Value.Status = status;
@@ -356,6 +354,7 @@ namespace TaxiData
 
             if (!existing.HasValue)
             {
+                await tx.CommitAsync();
                 return null;
             }
 
@@ -368,7 +367,7 @@ namespace TaxiData
             }
 
             var res = await rideDict.AddOrUpdateAsync(tx, rideKey, existing.Value, (key, value) => value);
-
+            
             await tx.CommitAsync();
 
             return res;
@@ -408,6 +407,22 @@ namespace TaxiData
 
             await tx.CommitAsync();
             return rides;
+        }
+
+        public async Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp)
+        {
+            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
+            using var tx = StateManager.CreateTransaction();
+
+            var existingRide = await rideDict.TryGetValueAsync(tx, $"{clientEmail}{rideCreatedAtTimestamp}");
+            await tx.CommitAsync();
+
+            if (!existingRide.HasValue)
+            {
+                return null;
+            }
+            
+            return existingRide.Value;
         }
 
 

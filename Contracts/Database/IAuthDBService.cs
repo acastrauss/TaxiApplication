@@ -52,5 +52,8 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<IEnumerable<Models.Ride.Ride>> GetRides(Models.Ride.QueryRideParams? queryParams);
+
+        [OperationContract]
+        Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp);
     }
 }

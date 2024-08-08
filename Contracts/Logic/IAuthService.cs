@@ -55,6 +55,9 @@ namespace Contracts.Logic
         Task<IEnumerable<Ride>> GetAllRides();
 
         [OperationContract]
+        Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp);
+
+        [OperationContract]
         Task<bool> SendEmail(SendEmailRequest sendEmailRequest);
 
     }

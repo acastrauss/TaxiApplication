@@ -229,7 +229,10 @@ namespace TaxiMainLogic
             return await authDBService.GetRides(default);
         }
 
-
+        public async Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp)
+        {
+            return await authDBService.GetRideStatus(clientEmail, rideCreatedAtTimestamp);
+        }
         #endregion
 
         #region EmailMethods
@@ -238,6 +241,7 @@ namespace TaxiMainLogic
         {
             return this.emailService.SendEmail(sendEmailRequest);
         }
+
         #endregion
     }
 }
