@@ -19,8 +19,8 @@ namespace TaxiWeb.Controllers
             public string Email { get; set; }
         }
 
-        private readonly IAuthService authService;
-        public DriverController(IAuthService authService)
+        private readonly IBussinesLogic authService;
+        public DriverController(IBussinesLogic authService)
         {
             this.authService = authService;
         }

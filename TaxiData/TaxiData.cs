@@ -14,6 +14,7 @@ using AzureStorageWrapper.DTO;
 using TaxiData.DataImplementations;
 using Models.UserTypes;
 using Models.Ride;
+using TaxiData.DataServices;
 
 namespace TaxiData
 {
@@ -22,17 +23,7 @@ namespace TaxiData
     /// </summary>
     internal sealed class TaxiData : StatefulService, IAuthDBService
     {
-        private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userTableStorageWrapper;
-        private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverTableStorageWrapper;
-        private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideTableStorageWrapper;
-        
-        private IDTOConverter<AzureStorageWrapper.Entities.User, UserProfile> UserDTOConverter;
-        private IDTOConverter<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> DriverDTOConverter;
-        private IDTOConverter<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride> RideDTOConverter;
-
-        private readonly Synchronizer<AzureStorageWrapper.Entities.User, Models.Auth.UserProfile> userSync;
-        private readonly Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> driverSync;
-        private readonly Synchronizer<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride> rideSync;
+        private readonly DataServiceFactory dataServiceFactory;
 
         public TaxiData(
             StatefulServiceContext context,
@@ -42,15 +33,12 @@ namespace TaxiData
         )
             : base(context)
         {
-            userTableStorageWrapper = userStorageWrapper;
-            driverTableStorageWrapper = driverStorageWrapper;
-            rideTableStorageWrapper = rideStorageWrapper;
-            UserDTOConverter = new UserDTO();
-            DriverDTOConverter = new DriverDTO();
-            RideDTOConverter = new RideDTO();
-            userSync = new Synchronizer<AzureStorageWrapper.Entities.User, UserProfile>(userStorageWrapper, typeof(UserProfile).Name, UserDTOConverter, StateManager);
-            driverSync = new Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver>(driverStorageWrapper, typeof(Models.UserTypes.Driver).Name, DriverDTOConverter, StateManager);
-            rideSync = new Synchronizer<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride>(rideStorageWrapper, typeof(Models.Ride.Ride).Name, RideDTOConverter, StateManager);
+            dataServiceFactory = new DataServiceFactory(
+                StateManager,
+                userStorageWrapper,
+                driverStorageWrapper,
+                rideStorageWrapper
+            );
         }
 
         #region AuthMethods
@@ -100,74 +88,34 @@ namespace TaxiData
 
         public async Task<UserProfile> GetUserProfile(string partitionKey, string rowKey)
         {
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
-            using var tx = StateManager.CreateTransaction();
-            var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
-            await tx.CommitAsync();
-            return existing.Value;
+            return await dataServiceFactory.AuthDataService.GetUserProfile(partitionKey, rowKey);
         }
 
         public async Task<bool> Exists(string partitionKey, string rowKey)
         {
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
-            using var tx = StateManager.CreateTransaction();
-            var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
-            await tx.CommitAsync();
-            return existing.HasValue;
+            return await dataServiceFactory.AuthDataService.Exists(partitionKey, rowKey);
         } 
 
         public async Task<bool> ExistsWithPwd(string partitionKey, string rowKey, string password)
         {
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
-            using var tx = StateManager.CreateTransaction();
-            var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
-            await tx.CommitAsync();
-            if (existing.HasValue)
-            {
-                return existing.Value.Password.Equals(password) &&
-                    existing.Value.Email.Equals(rowKey) &&
-                    existing.Value.Type.ToString().Equals(partitionKey);
-            }
-            return false;
+            return await dataServiceFactory.AuthDataService.ExistsWithPwd(partitionKey, rowKey, password);
         }
 
         public async Task<bool> ExistsSocialMediaAuth(string partitionKey, string rowKey)
         {
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
-            using var tx = StateManager.CreateTransaction();
-            var existing = await usersDict.TryGetValueAsync(tx, $"{partitionKey}{rowKey}");
-            await tx.CommitAsync();
-            if (existing.HasValue)
-            {
-                return existing.Value.Email.Equals(rowKey) &&
-                    existing.Value.Type.ToString().Equals(partitionKey);
-            }
-            return false;
+            return await dataServiceFactory.AuthDataService.ExistsSocialMediaAuth(partitionKey, rowKey);
         }
-
-        public async Task<bool> Create<T>(T appModel) where T: UserProfile
-        {
-            var dict = await StateManager.GetOrAddAsync<IReliableDictionary<string, T>>(typeof(T).Name);
-            using var tx = StateManager.CreateTransaction();
-            var dictKey = $"{appModel.Type.ToString()}{appModel.Email}";
-            var created = await dict.AddOrUpdateAsync(tx, dictKey, appModel, (key, value) => value);
-            await tx.CommitAsync();
-            return created != null;
-        }
-
         public async Task<bool> CreateUser(UserProfile appModel)
         {
-            var userCreated = await Create(appModel);
-            
-            return userCreated;
+            return await dataServiceFactory.AuthDataService.Create(appModel);
         }
         public async Task<bool> CreateDriver(Models.UserTypes.Driver appModel)
         {
-            var userCreated = await Create<UserProfile>(appModel);
+            var userCreated = await dataServiceFactory.AuthDataService.Create<UserProfile>(appModel);
             if (userCreated)
             {
                 var newDriver = new Models.UserTypes.Driver(appModel, Models.UserTypes.DriverStatus.NOT_VERIFIED);
-                userCreated = await Create(newDriver);
+                userCreated = await dataServiceFactory.AuthDataService.Create(newDriver);
             }
 
             return userCreated;
@@ -179,9 +127,7 @@ namespace TaxiData
 
         private async Task SyncAzureTablesWithDict()
         {
-            await userSync.SyncAzureTablesWithDict();
-            await driverSync.SyncAzureTablesWithDict();
-            await rideSync.SyncAzureTablesWithDict();
+            await dataServiceFactory.SyncAzureTablesWithDict();
         }
 
         private async Task RunPeriodicalUpdate(CancellationToken cancellationToken)
@@ -201,9 +147,7 @@ namespace TaxiData
 
         private async Task SyncDictWithAzureTable()
         {
-            await userSync.SyncDictWithAzureTable();
-            await driverSync.SyncDictWithAzureTable();
-            await rideSync.SyncDictWithAzureTable();
+            await dataServiceFactory.SyncDictWithAzureTable();
         }
 
         #endregion
@@ -228,10 +172,6 @@ namespace TaxiData
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
-
-
             var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
 
             await SyncDictWithAzureTable();
@@ -271,60 +211,17 @@ namespace TaxiData
         #region DriverMethods
         public async Task<DriverStatus> GetDriverStatus(string driverEmail)
         {
-            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.Driver>>(typeof(Models.UserTypes.Driver).Name);
-            using var tx = StateManager.CreateTransaction();
-
-            var existingDriver = await driversDict.TryGetValueAsync(tx, $"{UserType.DRIVER}{driverEmail}");
-            await tx.CommitAsync();
-
-            if (!existingDriver.HasValue)
-            {
-                return default;
-            }
-
-            return existingDriver.Value.Status;
+            return await dataServiceFactory.DriverDataService.GetDriverStatus(driverEmail);
         }
-
 
         public async Task<bool> UpdateDriverStatus(string driverEmail, DriverStatus status)
         {
-            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.Driver>>(typeof(Models.UserTypes.Driver).Name);
-            // TO DO: Maybe move this transaction after read (possibly not needed here)
-            // All do that for other examples as well
-            using var tx = StateManager.CreateTransaction();
-            var existingDriver = await driversDict.TryGetValueAsync(tx, $"{UserType.DRIVER}{driverEmail}");
-            if (!existingDriver.HasValue)
-            {
-                await tx.CommitAsync();
-                return false;
-            }
-            existingDriver.Value.Status = status;
-            var result = await driversDict.TryUpdateAsync(tx, $"{UserType.DRIVER}{driverEmail}", existingDriver.Value, existingDriver.Value);
-            await tx.CommitAsync();
-            return result;
+            return await dataServiceFactory.DriverDataService.UpdateDriverStatus(driverEmail, status);
         }
 
         public async Task<IEnumerable<Models.UserTypes.Driver>> ListAllDrivers()
         {
-            var driversDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.Driver>>(typeof(Models.UserTypes.Driver).Name);
-            using var tx = StateManager.CreateTransaction();
-    
-            var collectionEnum = await driversDict.CreateEnumerableAsync(tx);
-            var asyncEnum = collectionEnum.GetAsyncEnumerator();
-
-            var drivers = new List<Models.UserTypes.Driver>();
-
-            while (await asyncEnum.MoveNextAsync(default))
-            {
-                var driverEntity = asyncEnum.Current.Value;
-                if (driverEntity != null) 
-                {
-                    drivers.Add(driverEntity);
-                } 
-            }
-
-            await tx.CommitAsync();
-            return drivers;
+            return await dataServiceFactory.DriverDataService.ListAllDrivers();
         }
 
         #endregion
@@ -333,96 +230,22 @@ namespace TaxiData
 
         public async Task<Models.Ride.Ride> CreateRide(Models.Ride.Ride ride)
         {
-            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
-            using var tx = StateManager.CreateTransaction();
-
-            var rideKey = $"{ride.ClientEmail}{ride.CreatedAtTimestamp}";
-
-            var res = await rideDict.AddOrUpdateAsync(tx, rideKey, ride, (key, value) => value);
-            await tx.CommitAsync();
-
-            return res;
+            return await dataServiceFactory.RideDataService.CreateRide(ride);
         }
 
         public async Task<Models.Ride.Ride> UpdateRide(UpdateRideRequest updateRide, string driverEmail)
         {
-            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
-            using var tx = StateManager.CreateTransaction();
-            var rideKey = $"{updateRide.ClientEmail}{updateRide.RideCreatedAtTimestamp}";
-
-            var existing = await rideDict.TryGetValueAsync(tx, rideKey);
-
-            if (!existing.HasValue)
-            {
-                await tx.CommitAsync();
-                return null;
-            }
-
-            existing.Value.Status = updateRide.Status;
-
-            if(updateRide.Status == RideStatus.ACCEPTED && updateRide is UpdateRideWithTimeEstimate updateRideWithTime)
-            {
-                existing.Value.DriverEmail = driverEmail;
-                existing.Value.EstimatedRideEnd = existing.Value.EstimatedDriverArrival.AddSeconds(updateRideWithTime.RideEstimateSeconds);
-            }
-
-            var res = await rideDict.AddOrUpdateAsync(tx, rideKey, existing.Value, (key, value) => value);
-            
-            await tx.CommitAsync();
-
-            return res;
+            return await dataServiceFactory.RideDataService.UpdateRide(updateRide, driverEmail);
         }
 
         public async Task<IEnumerable<Models.Ride.Ride>> GetRides(QueryRideParams? queryParams)
         {
-            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
-            using var tx = StateManager.CreateTransaction();
-
-            var collectionEnum = await rideDict.CreateEnumerableAsync(tx);
-            var asyncEnum = collectionEnum.GetAsyncEnumerator();
-
-            var rides = new List<Models.Ride.Ride>();
-
-            while (await asyncEnum.MoveNextAsync(default))
-            {
-                var rideEntity = asyncEnum.Current.Value;
-                if (rideEntity != null)
-                {
-                    if (queryParams != null)
-                    {
-                        bool shouldAdd = (queryParams.Status == null) || (queryParams.Status == rideEntity.Status);
-                        shouldAdd &= (queryParams.ClientEmail == null) || (queryParams.ClientEmail == rideEntity.ClientEmail);
-                        shouldAdd &= (queryParams.DriverEmail == null) || (queryParams.DriverEmail == rideEntity.DriverEmail);
-                        if (shouldAdd)
-                        {
-                            rides.Add(rideEntity);
-                        }
-                    }
-                    else
-                    {
-                        rides.Add(rideEntity);
-                    }
-                }
-            }
-
-            await tx.CommitAsync();
-            return rides;
+            return await dataServiceFactory.RideDataService.GetRides(queryParams);    
         }
 
-        public async Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp)
+        public async Task<Ride> GetRide(string clientEmail, long rideCreatedAtTimestamp)
         {
-            var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
-            using var tx = StateManager.CreateTransaction();
-
-            var existingRide = await rideDict.TryGetValueAsync(tx, $"{clientEmail}{rideCreatedAtTimestamp}");
-            await tx.CommitAsync();
-
-            if (!existingRide.HasValue)
-            {
-                return null;
-            }
-            
-            return existingRide.Value;
+            return await dataServiceFactory.RideDataService.GetRide(clientEmail, rideCreatedAtTimestamp);
         }
 
 

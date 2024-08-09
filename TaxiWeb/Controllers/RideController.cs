@@ -12,8 +12,8 @@ namespace TaxiWeb.Controllers
     [ApiController]
     public class RideController : ControllerBase
     {
-        private readonly IAuthService authService;
-        public RideController(IAuthService authService)
+        private readonly IBussinesLogic authService;
+        public RideController(IBussinesLogic authService)
         {
             this.authService = authService;
         }

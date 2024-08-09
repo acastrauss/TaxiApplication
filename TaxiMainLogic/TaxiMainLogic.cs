@@ -21,7 +21,7 @@ namespace TaxiMainLogic
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiMainLogic : StatelessService, IAuthService
+    internal sealed class TaxiMainLogic : StatelessService, IBussinesLogic
     {
         private IAuthDBService authDBService;
         private IEmailService emailService;
@@ -231,7 +231,7 @@ namespace TaxiMainLogic
 
         public async Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp)
         {
-            return await authDBService.GetRideStatus(clientEmail, rideCreatedAtTimestamp);
+            return await authDBService.GetRide(clientEmail, rideCreatedAtTimestamp);
         }
         #endregion
 

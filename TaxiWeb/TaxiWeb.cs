@@ -89,8 +89,8 @@ namespace TaxiWeb
                         builder.Services.AddSingleton<Contracts.Blob.IBlob>(new AzureStorageWrapper.AzureBlobWrapper(azureConnString, "profile-images"));
 
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
-                        var proxy = ServiceProxy.Create<IAuthService>(new Uri("fabric:/TaxiApplication/TaxiMainLogic"));
-                        builder.Services.AddSingleton<IAuthService>(proxy);
+                        var proxy = ServiceProxy.Create<IBussinesLogic>(new Uri("fabric:/TaxiApplication/TaxiMainLogic"));
+                        builder.Services.AddSingleton<IBussinesLogic>(proxy);
 
                         var jwtAudience = builder.Configuration.GetSection("JWT").GetValue<string>("Audience");
                         var jwtIssuer = builder.Configuration.GetSection("JWT").GetValue<string>("Issuer");

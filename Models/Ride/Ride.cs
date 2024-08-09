@@ -36,5 +36,6 @@ namespace Models.Ride
         public DateTime EstimatedDriverArrival {  get; set; }
         [DataMember]
         public DateTime? EstimatedRideEnd { get; set; }
+
     }
 }

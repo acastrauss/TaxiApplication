@@ -19,10 +19,10 @@ namespace TaxiWeb.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService authService;
+        private readonly IBussinesLogic authService;
         private readonly IOptions<JWTConfig> jwtConfig;
 
-        public AuthController(IAuthService authService, IOptions<JWTConfig> jwtConfig)
+        public AuthController(IBussinesLogic authService, IOptions<JWTConfig> jwtConfig)
         {
             this.authService = authService;
             this.jwtConfig = jwtConfig;

@@ -13,8 +13,9 @@ using Models.Email;
 namespace Contracts.Logic
 {
     [ServiceContract]
-    public interface IAuthService : IService
+    public interface IBussinesLogic : IService
     {
+        #region AuthAndUserMethods
         [OperationContract]
         Task<Tuple<bool, UserType>> Login(LoginData loginData);
 
@@ -27,6 +28,9 @@ namespace Contracts.Logic
         [OperationContract]
         Task<UserProfile> UpdateUserProfile(UpdateUserProfileRequest updateUserProfileRequest, string userEmail, UserType userType);
 
+        #endregion
+
+        #region DriverMethods
         [OperationContract]
         Task<DriverStatus> GetDriverStatus(string driverEmail);
 
@@ -35,6 +39,9 @@ namespace Contracts.Logic
 
         [OperationContract]
         Task<IEnumerable<Driver>> ListAllDrivers();
+
+        #endregion
+        #region RideMethods
 
         [OperationContract]
         Task<EstimateRideResponse> EstimateRide(EstimateRideRequest request);
@@ -57,8 +64,11 @@ namespace Contracts.Logic
         [OperationContract]
         Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp);
 
+        #endregion
+        #region EmailMethods
+
         [OperationContract]
         Task<bool> SendEmail(SendEmailRequest sendEmailRequest);
-
+        #endregion
     }
 }

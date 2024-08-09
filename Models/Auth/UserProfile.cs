@@ -18,7 +18,7 @@ namespace Models.Auth
 
     [DataContract]
     [KnownType(typeof(Driver))]
-    public class UserProfile
+    public class UserProfile 
     {
         [DataMember]
         [Required]
@@ -59,5 +59,6 @@ namespace Models.Auth
         [Required]
         [DataType(DataType.ImageUrl)]
         public string ImagePath { get; set; } = string.Empty;
+
     }
 }
