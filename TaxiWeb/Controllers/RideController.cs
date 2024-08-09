@@ -157,7 +157,7 @@ namespace TaxiWeb.Controllers
 
         [HttpPost]
         [Authorize]
-        [Route("get-ride-status")]
+        [Route("get-ride")]
         public async Task<IActionResult> GetRideStatus([FromBody] GetRideStatusRequest getRideStatusRequest)
         {
             var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
@@ -191,7 +191,7 @@ namespace TaxiWeb.Controllers
                 return Unauthorized("You can not see this ride.");
             }
 
-            return Ok(ride.Status);
+            return Ok(ride);
         }
     }
 }
