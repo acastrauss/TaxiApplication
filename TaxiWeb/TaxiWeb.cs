@@ -73,14 +73,18 @@ namespace TaxiWeb
 
                          builder.Services.AddCors(options =>
                             {
-                                options.AddPolicy("AllowSpecificOrigins",
+                                options.AddPolicy("CorsPolicy",
                                     builder =>
                                     {
-                                        builder.WithOrigins("http://localhost:3000") // Add your frontend URL here
+                                        builder
                                             .AllowAnyHeader()
-                                            .AllowAnyMethod();
+                                            .AllowAnyMethod()
+                                            .WithOrigins("http://localhost:3000") // Add your frontend URL here
+                                            .AllowCredentials();
                                     });
                             });
+
+                        builder.Services.AddSignalR();
 
                         builder.Services.Configure<JWTConfig>(builder.Configuration.GetSection("JWT"));
                         var jwtSecret = builder.Configuration.GetSection("JWT").GetValue<string>("Secret");
@@ -121,8 +125,13 @@ namespace TaxiWeb
                         builder.Services.AddControllers();
                         
                         var app = builder.Build();
+                        app.UseRouting();
+                        app.UseCors("CorsPolicy");
+                        app.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapHub<ChatHub>("/chathub");
+                        });
                         // Configure the HTTP request pipeline.
-                        app.UseCors("AllowSpecificOrigins");
                         app.UseAuthentication();
                         app.UseAuthorization();
                         
