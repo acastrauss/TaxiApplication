@@ -19,6 +19,7 @@ using System.Text;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using TaxiWeb.ConfigModels;
+using TaxiWeb.Services;
 
 namespace TaxiWeb
 {
@@ -96,6 +97,8 @@ namespace TaxiWeb
                         var proxy = ServiceProxy.Create<IBussinesLogic>(new Uri("fabric:/TaxiApplication/TaxiMainLogic"));
                         builder.Services.AddSingleton<IBussinesLogic>(proxy);
 
+                        builder.Services.AddSingleton<IRequestAuth, RequestAuth>();
+
                         var jwtAudience = builder.Configuration.GetSection("JWT").GetValue<string>("Audience");
                         var jwtIssuer = builder.Configuration.GetSection("JWT").GetValue<string>("Issuer");
 
@@ -127,13 +130,13 @@ namespace TaxiWeb
                         var app = builder.Build();
                         app.UseRouting();
                         app.UseCors("CorsPolicy");
+                        app.UseAuthentication();
+                        app.UseAuthorization();
                         app.UseEndpoints(endpoints =>
                         {
                             endpoints.MapHub<ChatHub>("/chathub");
                         });
                         // Configure the HTTP request pipeline.
-                        app.UseAuthentication();
-                        app.UseAuthorization();
                         
                         app.MapControllers();
 

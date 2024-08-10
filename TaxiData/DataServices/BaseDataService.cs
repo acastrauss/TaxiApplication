@@ -45,7 +45,7 @@ namespace TaxiData.DataServices
         }
         protected async Task<IReliableDictionary<string, T1>> GetReliableDictionary()
         {
-            return await stateManager.GetOrAddAsync<IReliableDictionary<string, T1>>(typeof(Models.Auth.UserProfile).Name);
+            return await stateManager.GetOrAddAsync<IReliableDictionary<string, T1>>(typeof(T1).Name);
         }
     }
 }

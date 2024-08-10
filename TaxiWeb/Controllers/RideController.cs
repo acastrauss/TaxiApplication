@@ -109,11 +109,22 @@ namespace TaxiWeb.Controllers
                 return BadRequest("Invalid JWT");
             }
 
-            var validUpdate = (userType == UserType.CLIENT && request.Status == RideStatus.COMPLETED) || (userType == UserType.DRIVER && request.Status == RideStatus.ACCEPTED);
+            var validUpdate = 
+                (userType == UserType.CLIENT && request.Status == RideStatus.COMPLETED) 
+                || (userType == UserType.DRIVER && request.Status == RideStatus.ACCEPTED);
 
             if (!validUpdate)
             {
                 return Unauthorized("Can not update ride with given parameters");
+            }
+
+            if(userType == UserType.DRIVER)
+            {
+                var driverStatus = await authService.GetDriverStatus(userEmailClaim.Value);
+                if (driverStatus != Models.UserTypes.DriverStatus.VERIFIED)
+                {
+                    return Unauthorized($"This driver can not accept rides as he is {driverStatus}");
+                }
             }
 
             return Ok(await authService.UpdateRide(request, userEmailClaim.Value));
@@ -127,6 +138,19 @@ namespace TaxiWeb.Controllers
             if (!DoesUserHasRightsToAccess(new UserType[] { UserType.DRIVER }))
             {
                 return Unauthorized();
+            }
+            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+
+            if (userEmailClaim == null) 
+            {
+                return Unauthorized("Bad user email");
+            }
+
+            var driverStatus = await authService.GetDriverStatus(userEmailClaim.Value);
+
+            if(driverStatus != Models.UserTypes.DriverStatus.VERIFIED)
+            {
+                return Unauthorized($"This driver can not see new rides as he is {driverStatus}");
             }
 
             return Ok(await authService.GetNewRides());
