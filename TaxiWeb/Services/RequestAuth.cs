@@ -29,5 +29,29 @@ namespace TaxiWeb.Services
 
             return true;
         }
+
+        public string? GetUserEmailFromContext(HttpContext httpContext)
+        {
+            var userEmailClaim = httpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+            return userEmailClaim?.Value;
+        }
+
+        public UserType? GetUserTypeFromContext(HttpContext httpContext)
+        {
+            var userTypeClaim = httpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+            if(userTypeClaim == null)
+            {
+                return null;
+            }
+
+            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
+
+            if (!isParsed)
+            {
+                return null;
+            }
+
+            return userType;
+        }
     }
 }
