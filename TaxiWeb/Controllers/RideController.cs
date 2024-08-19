@@ -129,6 +129,20 @@ namespace TaxiWeb.Controllers
                 return Unauthorized($"This driver can not see new rides as he is {driverStatus}");
             }
 
+            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+
+            if (userEmailClaim == null)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var driverStatus = await authService.GetDriverStatus(userEmailClaim.Value);
+
+            if(driverStatus != Models.UserTypes.DriverStatus.VERIFIED)
+            {
+                return Unauthorized($"Driver is {driverStatus} and can not se new rides");
+            }
+
             return Ok(await authService.GetNewRides());
         }
 
@@ -150,7 +164,7 @@ namespace TaxiWeb.Controllers
 
         [HttpPost]
         [Authorize]
-        [Route("get-ride-status")]
+        [Route("get-ride")]
         public async Task<IActionResult> GetRideStatus([FromBody] GetRideStatusRequest getRideStatusRequest)
         {
             var userEmail = requestAuth.GetUserEmailFromContext(HttpContext);
@@ -177,7 +191,7 @@ namespace TaxiWeb.Controllers
                 return Unauthorized("You can not see this ride.");
             }
 
-            return Ok(ride.Status);
+            return Ok(ride);
         }
     }
 }

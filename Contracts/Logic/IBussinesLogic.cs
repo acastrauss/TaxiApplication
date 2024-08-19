@@ -79,5 +79,11 @@ namespace Contracts.Logic
         [OperationContract]
         Task<ChatMessage> AddNewMessageToChat(Models.Chat.ChatMessage message);
         #endregion
+        [OperationContract]
+        Task<DriverRating> RateDriver(DriverRating driverRating);
+
+        [OperationContract]
+        Task<float> GetAverageRatingForDriver(string driverEmail);
+
     }
 }

@@ -252,6 +252,7 @@ namespace TaxiData
         {
             return await dataServiceFactory.RideDataService.GetRide(clientEmail, rideCreatedAtTimestamp);
         }
+        #endregion
 
 
 
@@ -266,6 +267,48 @@ namespace TaxiData
         public async Task<ChatMessage> AddNewMessageToChat(ChatMessage message)
         {
             return await dataServiceFactory.ChatMessagesDataService.AddNewMessageToChat(message);
+        }
+        #region DriverRatingMethods
+        public async Task<Models.UserTypes.DriverRating> RateDriver(Models.UserTypes.DriverRating driverRating)
+        {
+            var ratingDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.DriverRating>>(typeof(Models.UserTypes.DriverRating).Name);
+            using var tx = StateManager.CreateTransaction();
+
+            var key = $"{driverRating.DriverEmail}{driverRating.RideTimestamp}";
+            var newRating = await ratingDict.AddOrUpdateAsync(tx, key, driverRating, (key, value) => value);
+
+            await tx.CommitAsync();
+
+            return newRating;
+        }
+
+        public async Task<float> GetAverageRatingForDriver(string driverEmail)
+        {
+            var ratingDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.DriverRating>>(typeof(Models.UserTypes.DriverRating).Name);
+            using var tx = StateManager.CreateTransaction();
+
+            var collectionEnum = await ratingDict.CreateEnumerableAsync(tx);
+            var asyncEnum = collectionEnum.GetAsyncEnumerator();
+
+            float sum = 0.0f;
+            int cnt = 0;
+
+            while (await asyncEnum.MoveNextAsync(default))
+            {
+                var ratingEntity = asyncEnum.Current.Value;
+                if (ratingEntity != null)
+                {
+                    if (ratingEntity.DriverEmail.Equals(driverEmail))
+                    {
+                        cnt += 1;
+                        sum += ratingEntity.Rating;
+                    }
+                }
+            }
+
+            await tx.CommitAsync();
+
+            return sum / cnt;
         }
 
         #endregion

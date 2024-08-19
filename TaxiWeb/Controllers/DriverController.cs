@@ -79,5 +79,31 @@ namespace TaxiWeb.Controllers
 
             return Ok(await authService.ListAllDrivers());
         }
+
+        [HttpPost]
+        [Authorize]
+        [Route("rate-driver")]
+        public async Task<IActionResult> RateDriver([FromBody] DriverRating driverRating)
+        {
+            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.CLIENT }))
+            {
+                return Unauthorized();
+            }
+
+            return Ok(await authService.RateDriver(driverRating));
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("avg-rating-driver")]
+        public async Task<IActionResult> AverageRatingDriver([FromBody] DriverEmail driverEmail)
+        {
+            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN }))
+            {
+                return Unauthorized();
+            }
+
+            return Ok(await authService.GetAverageRatingForDriver(driverEmail.Email));
+        }
     }
 }

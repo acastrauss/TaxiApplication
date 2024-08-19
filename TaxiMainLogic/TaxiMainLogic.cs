@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Fabric;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Contracts.Database;
@@ -149,18 +150,19 @@ namespace TaxiMainLogic
                 new EstimateRideResponse()
                 {
                     PriceEstimate = randomGen.NextSingle() * 1000,
-                    EstimatedDriverArrivalSeconds = randomGen.Next(60 * 60) // Max 1 hour
+                    EstimatedDriverArrivalSeconds = randomGen.Next(60) // Max 1 hour
                 });
         }
 
         public async Task<Ride> CreateRide(CreateRideRequest request, string clientEmail)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
+            var unixTimestamp = new DateTimeOffset(now).ToUnixTimeMilliseconds();
 
             var newRide = new Models.Ride.Ride()
             {
                 ClientEmail = clientEmail,
-                CreatedAtTimestamp = now.Ticks,
+                CreatedAtTimestamp = unixTimestamp,
                 DriverEmail = null,
                 EndAddress = request.EndAddress,
                 StartAddress = request.StartAddress,
@@ -185,7 +187,7 @@ namespace TaxiMainLogic
                     ClientEmail = request.ClientEmail,
                     RideCreatedAtTimestamp = request.RideCreatedAtTimestamp,
                     Status = request.Status,
-                    RideEstimateSeconds = randomGen.Next(60 * 60)
+                    RideEstimateSeconds = randomGen.Next(60)
                 };
 
                 return await authDBService.UpdateRide(rideWithTimeEstimate, driverEmail);
@@ -206,7 +208,6 @@ namespace TaxiMainLogic
         {
             switch (userType)
             {
-
                 case UserType.CLIENT:
                     return await authDBService.GetRides(new QueryRideParams()
                     {
@@ -257,6 +258,26 @@ namespace TaxiMainLogic
         {
             return await authDBService.AddNewMessageToChat(message);
         }
+        #region DriverRatingMethods
+
+
+        public async Task<DriverRating> RateDriver(DriverRating driverRating)
+        {
+            var userRides = await GetUsersRides(driverRating.ClientEmail, UserType.CLIENT);
+            var userHasThisRide = userRides.Any((ride) => ride.CreatedAtTimestamp == driverRating.RideTimestamp);    
+            if (!userHasThisRide) 
+            {
+                return null;
+            }
+
+            return await authDBService.RateDriver(driverRating);
+        }
+
+        public async Task<float> GetAverageRatingForDriver(string driverEmail)
+        {
+            return await authDBService.GetAverageRatingForDriver(driverEmail);
+        }
+
         #endregion
     }
 }
