@@ -129,6 +129,20 @@ namespace TaxiWeb.Controllers
                 return Unauthorized();
             }
 
+            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
+
+            if (userEmailClaim == null)
+            {
+                return BadRequest("Invalid JWT");
+            }
+
+            var driverStatus = await authService.GetDriverStatus(userEmailClaim.Value);
+
+            if(driverStatus != Models.UserTypes.DriverStatus.VERIFIED)
+            {
+                return Unauthorized($"Driver is {driverStatus} and can not se new rides");
+            }
+
             return Ok(await authService.GetNewRides());
         }
 
