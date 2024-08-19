@@ -39,7 +39,10 @@ namespace TaxiData
                         var rideStorageWrapper =
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride>(azureTableConnString, "ride");
 
-                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper, rideStorageWrapper);
+                        var driverRatingStorageWrapper =
+                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating>(azureTableConnString, "rating");
+
+                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper, rideStorageWrapper, driverRatingStorageWrapper);
                     }
                     
                     

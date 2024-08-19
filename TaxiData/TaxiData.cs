@@ -58,7 +58,7 @@ namespace TaxiData
             userSync = new Synchronizer<AzureStorageWrapper.Entities.User, UserProfile>(userStorageWrapper, typeof(UserProfile).Name, UserDTOConverter, StateManager);
             driverSync = new Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver>(driverStorageWrapper, typeof(Models.UserTypes.Driver).Name, DriverDTOConverter, StateManager);
             rideSync = new Synchronizer<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride>(rideStorageWrapper, typeof(Models.Ride.Ride).Name, RideDTOConverter, StateManager);
-            driverRatingSync = new Synchronizer<AzureStorageWrapper.Entities.DriverRating, DriverRating>(driverRatingStorageWrapper, typeof(Models.UserTypes.DriverRating).Name, DriverRatingDTOConverter, StateManager);
+            driverRatingSync = new Synchronizer<AzureStorageWrapper.Entities.DriverRating, Models.UserTypes.DriverRating>(driverRatingStorageWrapper, typeof(Models.UserTypes.DriverRating).Name, DriverRatingDTOConverter, StateManager);
         }
 
         #region AuthMethods
