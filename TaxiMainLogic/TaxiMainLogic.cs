@@ -258,6 +258,9 @@ namespace TaxiMainLogic
         {
             return await authDBService.AddNewMessageToChat(message);
         }
+
+        #endregion
+
         #region DriverRatingMethods
 
 

@@ -12,14 +12,14 @@ namespace AzureStorageWrapper.DTO
         {
             return new Entities.ChatMessage()
             {
-                ClientEmail = appModel.ClientEmail,
-                Content = appModel.Content,
-                PartitionKey = appModel.UserEmail,
-                RideCreadtedAtTimestamp = appModel.RideCreadtedAtTimestamp,
-                RowKey = new DateTimeOffset(appModel.Timestamp).ToUnixTimeMilliseconds().ToString(),
-                Timestamp = appModel.Timestamp,
-                UserEmail = appModel.UserEmail,
-                DriverEmail = appModel.DriverEmail,
+                ClientEmail = appModel.clientEmail,
+                Content = appModel.content,
+                PartitionKey = appModel.userEmail,
+                RideCreadtedAtTimestamp = appModel.rideCreadtedAtTimestamp,
+                RowKey = new DateTimeOffset(appModel.timestamp).ToUnixTimeMilliseconds().ToString(),
+                Timestamp = appModel.timestamp,
+                UserEmail = appModel.userEmail,
+                DriverEmail = appModel.driverEmail,
             };
         }
 
@@ -27,12 +27,12 @@ namespace AzureStorageWrapper.DTO
         {
             return new Models.Chat.ChatMessage()
             {
-                UserEmail = azureModel.UserEmail,
-                Timestamp = azureModel.Timestamp,
-                ClientEmail = azureModel.ClientEmail,
-                Content = azureModel.Content,
-                RideCreadtedAtTimestamp = azureModel.RideCreadtedAtTimestamp,
-                DriverEmail = azureModel.DriverEmail
+                userEmail = azureModel.UserEmail,
+                timestamp = azureModel.Timestamp,
+                clientEmail = azureModel.ClientEmail,
+                content = azureModel.Content,
+                rideCreadtedAtTimestamp = azureModel.RideCreadtedAtTimestamp,
+                driverEmail = azureModel.DriverEmail
             };
         }
     }

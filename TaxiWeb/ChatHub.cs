@@ -76,16 +76,16 @@ namespace TaxiWeb
             {
                 return;
             }
-            var connectionIdClient = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.ClientEmail).Key;
+            var connectionIdClient = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.clientEmail).Key;
             if (connectionIdClient != null)
             {
-                await Clients.Client(connectionIdClient).SendAsync("ReceiveMessage", createdMessage.ClientEmail, createdMessage);
+                await Clients.Client(connectionIdClient).SendAsync("ReceiveMessage", createdMessage.clientEmail, createdMessage);
             }
             
-            var connectionIdDriver = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.DriverEmail).Key;
+            var connectionIdDriver = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.driverEmail).Key;
             if (connectionIdDriver != null)
             {
-                await Clients.Client(connectionIdDriver).SendAsync("ReceiveMessage", createdMessage.DriverEmail, createdMessage);
+                await Clients.Client(connectionIdDriver).SendAsync("ReceiveMessage", createdMessage.driverEmail, createdMessage);
             }
         }
     }

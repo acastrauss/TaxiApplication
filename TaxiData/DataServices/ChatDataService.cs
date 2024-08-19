@@ -29,16 +29,16 @@ namespace TaxiData.DataServices
         {
             var dict = await GetReliableDictionary();
             using var txWrapper = new StateManagerTransactionWrapper(stateManager.CreateTransaction());
-            var chatKey = $"{chat.ClientEmail}{chat.RideCreatedAtTimestamp}";
+            var chatKey = $"{chat.clientEmail}{chat.rideCreatedAtTimestamp}";
 
             var existing = await dict.TryGetValueAsync(txWrapper.transaction, chatKey);
 
             if (existing.HasValue)
             {
-                var msgs = await messagesDataService.GetMessagesForChat(chat.ClientEmail, chat.DriverEmail, chat.RideCreatedAtTimestamp);
+                var msgs = await messagesDataService.GetMessagesForChat(chat.clientEmail, chat.driverEmail, chat.rideCreatedAtTimestamp);
                 if(msgs != null)
                 {
-                    existing.Value.Messages = msgs.ToList();
+                    existing.Value.messages = msgs.ToList();
                 }
                 return existing.Value;
             }

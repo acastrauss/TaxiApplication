@@ -26,7 +26,7 @@ namespace TaxiData.DataServices
         {
             var dict = await GetReliableDictionary();
             using var txWrapper = new StateManagerTransactionWrapper(stateManager.CreateTransaction());
-            var msgKey = $"{message.UserEmail}{message.Timestamp}";
+            var msgKey = $"{message.userEmail}{message.timestamp}";
             var created = await dict.AddOrUpdateAsync(txWrapper.transaction, msgKey, message, (key, value) => value);
             return created;
         }
@@ -46,7 +46,7 @@ namespace TaxiData.DataServices
                 var msg = asyncEnum.Current.Value;
                 if(msg != null)
                 {
-                    if (msg.ClientEmail.Equals(clientEmail) && msg.DriverEmail.Equals(driverEmail) && msg.RideCreadtedAtTimestamp == rideCreatedAtTimestamp)
+                    if (msg.clientEmail.Equals(clientEmail) && msg.driverEmail.Equals(driverEmail) && msg.rideCreadtedAtTimestamp == rideCreatedAtTimestamp)
                     {
                         msgs.Add(msg);
                     }

@@ -18,12 +18,14 @@ namespace TaxiData.DataServices
         public RideDataService RideDataService { get; private set; }
         public ChatDataService ChatDataService { get; private set; }
         public ChatMessagesDataService ChatMessagesDataService { get; private set; }
+        public DriverRatingDataService DriverRatingDataService { get; private set; }
 
         public DataServiceFactory(
             IReliableStateManager stateManager,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating> driverRatingStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Chat> chatStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.ChatMessage> chatMessageStorageWrapper
         ) 
@@ -65,6 +67,20 @@ namespace TaxiData.DataServices
                 ),
                 stateManager
             );
+
+            var driverRatingDto = new DriverRatingDTO();
+            DriverRatingDataService = new DriverRatingDataService(
+                driverRatingStorageWrapper,
+                driverRatingDto,
+                new DataImplementations.Synchronizer<DriverRating, Models.UserTypes.DriverRating>(
+                    driverRatingStorageWrapper,
+                    typeof(DriverRating).Name,
+                    driverRatingDto,
+                    stateManager
+                ),
+                stateManager
+            );
+
             var chatMsgDto = new ChatMessageDTO();
             ChatMessagesDataService = new ChatMessagesDataService(
                 chatMessageStorageWrapper,
@@ -100,6 +116,7 @@ namespace TaxiData.DataServices
             await AuthDataService.SyncAzureTablesWithDict();
             await DriverDataService.SyncAzureTablesWithDict();
             await RideDataService.SyncAzureTablesWithDict();
+            await DriverDataService.SyncAzureTablesWithDict();
             await ChatDataService.SyncAzureTablesWithDict();
             await ChatMessagesDataService.SyncAzureTablesWithDict();
         }
@@ -108,6 +125,7 @@ namespace TaxiData.DataServices
             await AuthDataService.SyncDictWithAzureTable();
             await DriverDataService.SyncDictWithAzureTable();
             await RideDataService.SyncDictWithAzureTable();
+            await DriverDataService.SyncDictWithAzureTable();
             await ChatDataService.SyncDictWithAzureTable();
             await ChatMessagesDataService.SyncDictWithAzureTable();
         }

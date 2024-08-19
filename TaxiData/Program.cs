@@ -38,18 +38,17 @@ namespace TaxiData
 
                         var rideStorageWrapper =
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride>(azureTableConnString, "ride");
-                        
+
+                        var driverRatingStorageWrapper =
+                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating>(azureTableConnString, "rating");
+
                         var chatStorageWrapper =
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Chat>(azureTableConnString, "chat");
 
                         var chatMsgStorageWrapper =
                             new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.ChatMessage>(azureTableConnString, "chatMessages");
 
-                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper, rideStorageWrapper, chatStorageWrapper, chatMsgStorageWrapper);
-                        var driverRatingStorageWrapper =
-                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating>(azureTableConnString, "rating");
-
-                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper, rideStorageWrapper, driverRatingStorageWrapper);
+                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper, rideStorageWrapper, driverRatingStorageWrapper, chatStorageWrapper, chatMsgStorageWrapper);
                     }
                     
                     

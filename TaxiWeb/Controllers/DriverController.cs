@@ -85,7 +85,8 @@ namespace TaxiWeb.Controllers
         [Route("rate-driver")]
         public async Task<IActionResult> RateDriver([FromBody] DriverRating driverRating)
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.CLIENT }))
+            bool userCanAccessResource = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.CLIENT });
+            if (!userCanAccessResource)
             {
                 return Unauthorized();
             }
@@ -98,7 +99,8 @@ namespace TaxiWeb.Controllers
         [Route("avg-rating-driver")]
         public async Task<IActionResult> AverageRatingDriver([FromBody] DriverEmail driverEmail)
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN }))
+            bool userCanAccessResource = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.ADMIN });
+            if (!userCanAccessResource)
             {
                 return Unauthorized();
             }

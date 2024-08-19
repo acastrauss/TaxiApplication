@@ -19,17 +19,17 @@ namespace Models.Chat
     {
         [DataMember]
         [Required]
-        public string ClientEmail { get; set; }
+        public string clientEmail { get; set; }
         [DataMember]
         [Required]
-        public string DriverEmail { get; set; }
+        public string driverEmail { get; set; }
         [DataMember]
         [Required]
-        public long RideCreatedAtTimestamp { get; set; }
+        public long rideCreatedAtTimestamp { get; set; }
         [DataMember]
-        public List<ChatMessage> Messages { get; set; }
+        public List<ChatMessage> messages { get; set; }
         [DataMember]
-        public ChatStatus Status { get; set; }
+        public ChatStatus status { get; set; }
     }
 
     [DataContract]
@@ -37,24 +37,24 @@ namespace Models.Chat
     {
         [DataMember]
         [Required]
-        public string UserEmail { get; set; }
+        public string userEmail { get; set; }
         [DataMember]
         [Required]
-        public string Content { get; set; }
+        public string content { get; set; }
         [DataMember]
         [Required]
-        public DateTime Timestamp { get; set; }
+        public DateTime timestamp { get; set; }
         
         // Keys from chat
         // TO DO: Try to remove these from app model
         [DataMember]
         [Required]
-        public string ClientEmail { get; set; }
+        public string clientEmail { get; set; }
         [DataMember]
         [Required]
-        public string DriverEmail { get; set; }
+        public string driverEmail { get; set; }
         [DataMember]
         [Required]
-        public long RideCreadtedAtTimestamp { get; set; }
+        public long rideCreadtedAtTimestamp { get; set; }
     }
 }

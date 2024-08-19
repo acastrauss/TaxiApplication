@@ -31,6 +31,7 @@ namespace TaxiData
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating> driverRatingWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Chat> chatStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.ChatMessage> chatMsgStorageWrapper
         )
@@ -41,6 +42,7 @@ namespace TaxiData
                 userStorageWrapper,
                 driverStorageWrapper,
                 rideStorageWrapper,
+                driverRatingWrapper,
                 chatStorageWrapper,
                 chatMsgStorageWrapper
             );
@@ -254,10 +256,6 @@ namespace TaxiData
         }
         #endregion
 
-
-
-        #endregion
-
         #region ChatMethods
         public async Task<Chat> CreateNewOrGetExistingChat(Chat chat)
         {
@@ -268,47 +266,18 @@ namespace TaxiData
         {
             return await dataServiceFactory.ChatMessagesDataService.AddNewMessageToChat(message);
         }
+
+        #endregion
+
         #region DriverRatingMethods
         public async Task<Models.UserTypes.DriverRating> RateDriver(Models.UserTypes.DriverRating driverRating)
         {
-            var ratingDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.DriverRating>>(typeof(Models.UserTypes.DriverRating).Name);
-            using var tx = StateManager.CreateTransaction();
-
-            var key = $"{driverRating.DriverEmail}{driverRating.RideTimestamp}";
-            var newRating = await ratingDict.AddOrUpdateAsync(tx, key, driverRating, (key, value) => value);
-
-            await tx.CommitAsync();
-
-            return newRating;
+            return await dataServiceFactory.DriverRatingDataService.RateDriver(driverRating);
         }
 
         public async Task<float> GetAverageRatingForDriver(string driverEmail)
         {
-            var ratingDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.DriverRating>>(typeof(Models.UserTypes.DriverRating).Name);
-            using var tx = StateManager.CreateTransaction();
-
-            var collectionEnum = await ratingDict.CreateEnumerableAsync(tx);
-            var asyncEnum = collectionEnum.GetAsyncEnumerator();
-
-            float sum = 0.0f;
-            int cnt = 0;
-
-            while (await asyncEnum.MoveNextAsync(default))
-            {
-                var ratingEntity = asyncEnum.Current.Value;
-                if (ratingEntity != null)
-                {
-                    if (ratingEntity.DriverEmail.Equals(driverEmail))
-                    {
-                        cnt += 1;
-                        sum += ratingEntity.Rating;
-                    }
-                }
-            }
-
-            await tx.CommitAsync();
-
-            return sum / cnt;
+            return await dataServiceFactory.DriverRatingDataService.GetAverageRatingForDriver(driverEmail);
         }
 
         #endregion
