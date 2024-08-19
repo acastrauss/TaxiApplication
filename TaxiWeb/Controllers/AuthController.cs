@@ -129,7 +129,7 @@ namespace TaxiWeb.Controllers
                     new Claim(ClaimTypes.Email, loginData.Email), 
                     new Claim(ClaimTypes.Role, userExists.Item2.ToString()) 
                 }),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.Now.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Audience=jwtConfig.Value.Audience,
                 Issuer=jwtConfig.Value.Issuer
