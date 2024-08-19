@@ -9,5 +9,8 @@ namespace Contracts.Blob
     public interface IBlob
     {
         Task<string> UploadBlob(string blobName, Stream blobContent);
+
+        Task<string> GenerateSasUri(string blobName);
     }
+
 }

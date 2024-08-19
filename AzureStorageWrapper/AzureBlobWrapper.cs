@@ -21,6 +21,14 @@ namespace AzureStorageWrapper
             blobContainerClient.CreateIfNotExists();
         }
 
+        public async Task<string> GenerateSasUri(string blobName)
+        {
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+            var dto = new DateTimeOffset(DateTime.Now.AddHours(1));
+            var sasUri = blobClient.GenerateSasUri(Azure.Storage.Sas.BlobSasPermissions.Read, dto);
+            return sasUri?.AbsoluteUri; 
+        }
+
         public async Task<string> UploadBlob(string blobName, Stream blobContent)
         {
             var blobClient = blobContainerClient.GetBlobClient(blobName);
