@@ -154,7 +154,7 @@ namespace TaxiMainLogic
 
         public async Task<Ride> CreateRide(CreateRideRequest request, string clientEmail)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var unixTimestamp = new DateTimeOffset(now).ToUnixTimeMilliseconds();
 
             var newRide = new Models.Ride.Ride()
