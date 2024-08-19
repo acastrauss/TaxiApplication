@@ -148,18 +148,19 @@ namespace TaxiMainLogic
                 new EstimateRideResponse()
                 {
                     PriceEstimate = randomGen.NextSingle() * 1000,
-                    EstimatedDriverArrivalSeconds = randomGen.Next(60 * 60) // Max 1 hour
+                    EstimatedDriverArrivalSeconds = randomGen.Next(60) // Max 1 hour
                 });
         }
 
         public async Task<Ride> CreateRide(CreateRideRequest request, string clientEmail)
         {
             var now = DateTime.UtcNow;
+            var unixTimestamp = new DateTimeOffset(now).ToUnixTimeMilliseconds();
 
             var newRide = new Models.Ride.Ride()
             {
                 ClientEmail = clientEmail,
-                CreatedAtTimestamp = now.Ticks,
+                CreatedAtTimestamp = unixTimestamp,
                 DriverEmail = null,
                 EndAddress = request.EndAddress,
                 StartAddress = request.StartAddress,
@@ -184,7 +185,7 @@ namespace TaxiMainLogic
                     ClientEmail = request.ClientEmail,
                     RideCreatedAtTimestamp = request.RideCreatedAtTimestamp,
                     Status = request.Status,
-                    RideEstimateSeconds = randomGen.Next(60 * 60)
+                    RideEstimateSeconds = randomGen.Next(60)
                 };
 
                 return await authDBService.UpdateRide(rideWithTimeEstimate, driverEmail);
