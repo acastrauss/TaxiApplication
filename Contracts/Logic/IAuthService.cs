@@ -60,5 +60,11 @@ namespace Contracts.Logic
         [OperationContract]
         Task<bool> SendEmail(SendEmailRequest sendEmailRequest);
 
+        [OperationContract]
+        Task<DriverRating> RateDriver(DriverRating driverRating);
+
+        [OperationContract]
+        Task<float> GetAverageRatingForDriver(string driverEmail);
+
     }
 }

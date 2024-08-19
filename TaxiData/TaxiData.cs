@@ -14,6 +14,7 @@ using AzureStorageWrapper.DTO;
 using TaxiData.DataImplementations;
 using Models.UserTypes;
 using Models.Ride;
+using AzureStorageWrapper.Entities;
 
 namespace TaxiData
 {
@@ -25,32 +26,39 @@ namespace TaxiData
         private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userTableStorageWrapper;
         private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverTableStorageWrapper;
         private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideTableStorageWrapper;
-        
+        private AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating> driverRatingTableStorageWrapper;
+
         private IDTOConverter<AzureStorageWrapper.Entities.User, UserProfile> UserDTOConverter;
         private IDTOConverter<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> DriverDTOConverter;
         private IDTOConverter<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride> RideDTOConverter;
+        private IDTOConverter<AzureStorageWrapper.Entities.DriverRating, Models.UserTypes.DriverRating> DriverRatingDTOConverter;
 
         private readonly Synchronizer<AzureStorageWrapper.Entities.User, Models.Auth.UserProfile> userSync;
         private readonly Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> driverSync;
         private readonly Synchronizer<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride> rideSync;
+        private readonly Synchronizer<AzureStorageWrapper.Entities.DriverRating, Models.UserTypes.DriverRating> driverRatingSync;
 
         public TaxiData(
             StatefulServiceContext context,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating> driverRatingStorageWrapper
         )
             : base(context)
         {
             userTableStorageWrapper = userStorageWrapper;
             driverTableStorageWrapper = driverStorageWrapper;
             rideTableStorageWrapper = rideStorageWrapper;
+            driverRatingTableStorageWrapper = driverRatingStorageWrapper; 
             UserDTOConverter = new UserDTO();
             DriverDTOConverter = new DriverDTO();
             RideDTOConverter = new RideDTO();
+            DriverRatingDTOConverter = new DriverRatingDTO();
             userSync = new Synchronizer<AzureStorageWrapper.Entities.User, UserProfile>(userStorageWrapper, typeof(UserProfile).Name, UserDTOConverter, StateManager);
             driverSync = new Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver>(driverStorageWrapper, typeof(Models.UserTypes.Driver).Name, DriverDTOConverter, StateManager);
             rideSync = new Synchronizer<AzureStorageWrapper.Entities.Ride, Models.Ride.Ride>(rideStorageWrapper, typeof(Models.Ride.Ride).Name, RideDTOConverter, StateManager);
+            driverRatingSync = new Synchronizer<AzureStorageWrapper.Entities.DriverRating, DriverRating>(driverRatingStorageWrapper, typeof(Models.UserTypes.DriverRating).Name, DriverRatingDTOConverter, StateManager);
         }
 
         #region AuthMethods
@@ -182,6 +190,7 @@ namespace TaxiData
             await userSync.SyncAzureTablesWithDict();
             await driverSync.SyncAzureTablesWithDict();
             await rideSync.SyncAzureTablesWithDict();
+            await driverRatingSync.SyncAzureTablesWithDict();
         }
 
         private async Task RunPeriodicalUpdate(CancellationToken cancellationToken)
@@ -204,6 +213,7 @@ namespace TaxiData
             await userSync.SyncDictWithAzureTable();
             await driverSync.SyncDictWithAzureTable();
             await rideSync.SyncDictWithAzureTable();
+            await driverRatingSync.SyncDictWithAzureTable();
         }
 
         #endregion
@@ -409,7 +419,7 @@ namespace TaxiData
             return rides;
         }
 
-        public async Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp)
+        public async Task<Models.Ride.Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp)
         {
             var rideDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.Ride.Ride>>(typeof(Models.Ride.Ride).Name);
             using var tx = StateManager.CreateTransaction();
@@ -424,7 +434,51 @@ namespace TaxiData
             
             return existingRide.Value;
         }
+        #endregion
 
+
+        #region DriverRatingMethods
+        public async Task<Models.UserTypes.DriverRating> RateDriver(Models.UserTypes.DriverRating driverRating)
+        {
+            var ratingDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.DriverRating>>(typeof(Models.UserTypes.DriverRating).Name);
+            using var tx = StateManager.CreateTransaction();
+
+            var key = $"{driverRating.DriverEmail}{driverRating.RideTimestamp}";
+            var newRating = await ratingDict.AddOrUpdateAsync(tx, key, driverRating, (key, value) => value);
+
+            await tx.CommitAsync();
+
+            return newRating;
+        }
+
+        public async Task<float> GetAverageRatingForDriver(string driverEmail)
+        {
+            var ratingDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, Models.UserTypes.DriverRating>>(typeof(Models.UserTypes.DriverRating).Name);
+            using var tx = StateManager.CreateTransaction();
+
+            var collectionEnum = await ratingDict.CreateEnumerableAsync(tx);
+            var asyncEnum = collectionEnum.GetAsyncEnumerator();
+
+            float sum = 0.0f;
+            int cnt = 0;
+
+            while (await asyncEnum.MoveNextAsync(default))
+            {
+                var ratingEntity = asyncEnum.Current.Value;
+                if (ratingEntity != null)
+                {
+                    if (ratingEntity.DriverEmail.Equals(driverEmail))
+                    {
+                        cnt += 1;
+                        sum += ratingEntity.Rating;
+                    }
+                }
+            }
+
+            await tx.CommitAsync();
+
+            return sum / cnt;
+        }
 
         #endregion
     }

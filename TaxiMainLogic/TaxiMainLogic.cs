@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Fabric;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Contracts.Database;
@@ -206,7 +207,6 @@ namespace TaxiMainLogic
         {
             switch (userType)
             {
-
                 case UserType.CLIENT:
                     return await authDBService.GetRides(new QueryRideParams()
                     {
@@ -241,6 +241,29 @@ namespace TaxiMainLogic
         public async Task<bool> SendEmail(SendEmailRequest sendEmailRequest)
         {
             return this.emailService.SendEmail(sendEmailRequest);
+        }
+
+
+        #endregion
+
+        #region DriverRatingMethods
+
+
+        public async Task<DriverRating> RateDriver(DriverRating driverRating)
+        {
+            var userRides = await GetUsersRides(driverRating.ClientEmail, UserType.CLIENT);
+            var userHasThisRide = userRides.Any((ride) => ride.CreatedAtTimestamp == driverRating.RideTimestamp);    
+            if (!userHasThisRide) 
+            {
+                return null;
+            }
+
+            return await authDBService.RateDriver(driverRating);
+        }
+
+        public async Task<float> GetAverageRatingForDriver(string driverEmail)
+        {
+            return await authDBService.GetAverageRatingForDriver(driverEmail);
         }
 
         #endregion
