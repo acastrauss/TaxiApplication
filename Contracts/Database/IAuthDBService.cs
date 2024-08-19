@@ -55,5 +55,11 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp);
+
+        [OperationContract]
+        Task<DriverRating> RateDriver(DriverRating driverRating);
+
+        [OperationContract]
+        Task<float> GetAverageRatingForDriver(string driverEmail);
     }
 }
