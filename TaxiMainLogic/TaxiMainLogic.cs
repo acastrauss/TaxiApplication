@@ -12,6 +12,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Models.Auth;
+using Models.Chat;
 using Models.Email;
 using Models.Ride;
 using Models.UserTypes;
@@ -242,6 +243,20 @@ namespace TaxiMainLogic
             return this.emailService.SendEmail(sendEmailRequest);
         }
 
+
+        #endregion
+
+        #region ChatMethods
+
+        public async Task<Chat> CreateNewOrGetExistingChat(Chat chat)
+        {
+            return await authDBService.CreateNewOrGetExistingChat(chat);
+        }
+
+        public async Task<ChatMessage> AddNewMessageToChat(ChatMessage message)
+        {
+            return await authDBService.AddNewMessageToChat(message);
+        }
         #endregion
     }
 }

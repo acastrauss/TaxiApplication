@@ -15,6 +15,7 @@ using TaxiData.DataImplementations;
 using Models.UserTypes;
 using Models.Ride;
 using TaxiData.DataServices;
+using Models.Chat;
 
 namespace TaxiData
 {
@@ -29,7 +30,9 @@ namespace TaxiData
             StatefulServiceContext context,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Chat> chatStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.ChatMessage> chatMsgStorageWrapper
         )
             : base(context)
         {
@@ -37,7 +40,9 @@ namespace TaxiData
                 StateManager,
                 userStorageWrapper,
                 driverStorageWrapper,
-                rideStorageWrapper
+                rideStorageWrapper,
+                chatStorageWrapper,
+                chatMsgStorageWrapper
             );
         }
 
@@ -248,6 +253,20 @@ namespace TaxiData
             return await dataServiceFactory.RideDataService.GetRide(clientEmail, rideCreatedAtTimestamp);
         }
 
+
+
+        #endregion
+
+        #region ChatMethods
+        public async Task<Chat> CreateNewOrGetExistingChat(Chat chat)
+        {
+            return await dataServiceFactory.ChatDataService.CreateNewOrGetExistingChat(chat);
+        }
+
+        public async Task<ChatMessage> AddNewMessageToChat(ChatMessage message)
+        {
+            return await dataServiceFactory.ChatMessagesDataService.AddNewMessageToChat(message);
+        }
 
         #endregion
     }

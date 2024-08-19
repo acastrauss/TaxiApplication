@@ -16,12 +16,16 @@ namespace TaxiData.DataServices
         public AuthDataService AuthDataService { get; private set; }
         public DriverDataService DriverDataService { get; private set; }
         public RideDataService RideDataService { get; private set; }
+        public ChatDataService ChatDataService { get; private set; }
+        public ChatMessagesDataService ChatMessagesDataService { get; private set; }
 
         public DataServiceFactory(
             IReliableStateManager stateManager,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
             AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Chat> chatStorageWrapper,
+            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.ChatMessage> chatMessageStorageWrapper
         ) 
         {
             var userDto = new UserDTO();
@@ -61,6 +65,34 @@ namespace TaxiData.DataServices
                 ),
                 stateManager
             );
+            var chatMsgDto = new ChatMessageDTO();
+            ChatMessagesDataService = new ChatMessagesDataService(
+                chatMessageStorageWrapper,
+                chatMsgDto,
+                new DataImplementations.Synchronizer<ChatMessage, Models.Chat.ChatMessage>(
+                    chatMessageStorageWrapper,
+                    typeof(ChatMessage).Name,
+                    chatMsgDto,
+                    stateManager
+                ),
+                stateManager
+            );
+
+            var chatDto = new ChatDTO();
+            ChatDataService = new ChatDataService(
+                chatStorageWrapper,
+                chatDto,
+                new DataImplementations.Synchronizer<Chat, Models.Chat.Chat>(
+                    chatStorageWrapper,
+                    typeof(Chat).Name,
+                    chatDto,
+                    stateManager
+                ),
+                stateManager,
+                ChatMessagesDataService
+            );
+
+           
         }
 
         public async Task SyncAzureTablesWithDict()
@@ -68,12 +100,16 @@ namespace TaxiData.DataServices
             await AuthDataService.SyncAzureTablesWithDict();
             await DriverDataService.SyncAzureTablesWithDict();
             await RideDataService.SyncAzureTablesWithDict();
+            await ChatDataService.SyncAzureTablesWithDict();
+            await ChatMessagesDataService.SyncAzureTablesWithDict();
         }
         public async Task SyncDictWithAzureTable()
         {
             await AuthDataService.SyncDictWithAzureTable();
             await DriverDataService.SyncDictWithAzureTable();
             await RideDataService.SyncDictWithAzureTable();
+            await ChatDataService.SyncDictWithAzureTable();
+            await ChatMessagesDataService.SyncDictWithAzureTable();
         }
     }
 }

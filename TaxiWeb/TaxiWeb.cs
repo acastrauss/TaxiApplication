@@ -85,7 +85,6 @@ namespace TaxiWeb
                                     });
                             });
 
-                        builder.Services.AddSignalR();
 
                         builder.Services.Configure<JWTConfig>(builder.Configuration.GetSection("JWT"));
                         var jwtSecret = builder.Configuration.GetSection("JWT").GetValue<string>("Secret");
@@ -120,8 +119,23 @@ namespace TaxiWeb
                                 ValidAudience = jwtAudience,
                                 IssuerSigningKey = new SymmetricSecurityKey(key),
                             };
+
+                            x.Events = new JwtBearerEvents
+                            {
+                                OnMessageReceived = context =>
+                                {
+                                    var accessToken = context.Request.Query["access_token"];
+                                    var path = context.HttpContext.Request.Path;
+                                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+                                    {
+                                        context.Token = accessToken;
+                                    }
+                                    return Task.CompletedTask;
+                                }
+                            };
                         });
                         
+                        builder.Services.AddSignalR();
                         
                         // Add services to the container.
                         
