@@ -28,8 +28,7 @@ namespace TaxiWeb.Controllers
         [Route("upload-profile-image/{hashedEmail}")]
         public async Task<IActionResult> UploadProfileImage([FromForm] IFormFile file, [FromForm] string fileName)
         {
-            object? email = null;
-            Request.RouteValues.TryGetValue("hashedEmail", out email);
+            Request.RouteValues.TryGetValue("hashedEmail", out object? email);
 
             if (email == null || file == null || file.Length == 0)
             {
@@ -50,6 +49,26 @@ namespace TaxiWeb.Controllers
                 }
                 return Ok(res);
             }
+        }
+
+        [HttpGet]
+        // blobName = <some-hash>.<extension>
+        [Route("get-image-sas/{blobName}")]
+        public async Task<IActionResult> GetImageSas()
+        {
+            Request.RouteValues.TryGetValue("blobName", out object? blobName);
+
+            if (blobName == null)
+            {
+                return BadRequest("Invalid parameters");
+            }
+
+            if (blobName is string blobNameString)
+            {
+                return Ok(await blob.GenerateSasUri(blobNameString));
+            }
+
+            return BadRequest("Invalid parameters");
         }
     }
 }

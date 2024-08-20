@@ -9,6 +9,7 @@ using Models.Auth;
 using Models.UserTypes;
 using Models.Ride;
 using Models.Email;
+using Models.Chat;
 
 namespace Contracts.Logic
 {
@@ -41,6 +42,7 @@ namespace Contracts.Logic
         Task<IEnumerable<Driver>> ListAllDrivers();
 
         #endregion
+        
         #region RideMethods
 
         [OperationContract]
@@ -65,10 +67,26 @@ namespace Contracts.Logic
         Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp);
 
         #endregion
+        
         #region EmailMethods
 
         [OperationContract]
         Task<bool> SendEmail(SendEmailRequest sendEmailRequest);
         #endregion
+
+        #region ChatMethods
+        [OperationContract]
+        Task<Chat> CreateNewOrGetExistingChat(Models.Chat.Chat chat);
+
+        [OperationContract]
+        Task<ChatMessage> AddNewMessageToChat(Models.Chat.ChatMessage message);
+        #endregion
+
+        [OperationContract]
+        Task<RideRating> RateDriver(RideRating driverRating);
+
+        [OperationContract]
+        Task<float> GetAverageRatingForDriver(string driverEmail);
+
     }
 }

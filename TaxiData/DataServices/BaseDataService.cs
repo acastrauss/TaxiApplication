@@ -16,13 +16,13 @@ namespace TaxiData.DataServices
 {
     internal abstract class BaseDataService<T1, T2> where T1 : class where T2 : AzureBaseEntity
     {
-        protected AzureStorageWrapper.AzureStorageWrapper<T2> storageWrapper;
+        protected AzureStorageWrapper.TablesOperations<T2> storageWrapper;
         protected IDTOConverter<T2,  T1> converter;
         protected readonly Synchronizer<T2, T1> synchronizer;
         protected readonly IReliableStateManager stateManager;
 
         public BaseDataService(
-            AzureStorageWrapper<T2> storageWrapper,
+            TablesOperations<T2> storageWrapper,
             IDTOConverter<T2, T1> converter,
             Synchronizer<T2, T1> synchronizer,
             IReliableStateManager stateManager
@@ -45,7 +45,7 @@ namespace TaxiData.DataServices
         }
         protected async Task<IReliableDictionary<string, T1>> GetReliableDictionary()
         {
-            return await stateManager.GetOrAddAsync<IReliableDictionary<string, T1>>(typeof(Models.Auth.UserProfile).Name);
+            return await stateManager.GetOrAddAsync<IReliableDictionary<string, T1>>(typeof(T1).Name);
         }
     }
 }

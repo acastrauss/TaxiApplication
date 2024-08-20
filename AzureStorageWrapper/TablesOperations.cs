@@ -7,13 +7,13 @@ using System.Xml;
 
 namespace AzureStorageWrapper
 {
-    public class AzureStorageWrapper<T> where T : class, ITableEntity
+    public class TablesOperations<T> where T : class, ITableEntity
     {
         private readonly TableClient tableClient;
         private string connectionString;
         private string tableName;
 
-        public AzureStorageWrapper(string connectionString, string tableName)
+        public TablesOperations(string connectionString, string tableName)
         {
             this.tableClient = new TableClient(connectionString, tableName);
             this.connectionString = connectionString;

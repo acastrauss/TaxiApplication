@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 using System.ServiceModel;
 using Models.UserTypes;
 using Models.Ride;
+using Models.Chat;
 
 namespace Contracts.Database
 {
     [ServiceContract]
-    public interface IAuthDBService : IService
+    public interface IData : IService
     {
         [OperationContract]
         Task<bool> Exists(string partitionKey, string rowKey);
@@ -55,5 +56,17 @@ namespace Contracts.Database
 
         [OperationContract]
         Task<Ride> GetRide(string clientEmail, long rideCreatedAtTimestamp);
+
+        [OperationContract]
+        Task<Chat> CreateNewOrGetExistingChat(Models.Chat.Chat chat);
+
+        [OperationContract] 
+        Task<ChatMessage> AddNewMessageToChat(Models.Chat.ChatMessage message);
+
+        [OperationContract]
+        Task<RideRating> RateDriver(RideRating driverRating);
+
+        [OperationContract]
+        Task<float> GetAverageRatingForDriver(string driverEmail);
     }
 }
