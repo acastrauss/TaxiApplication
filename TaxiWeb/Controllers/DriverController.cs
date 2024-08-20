@@ -58,6 +58,7 @@ namespace TaxiWeb.Controllers
                 await authService.SendEmail(new Models.Email.SendEmailRequest()
                 {
                     Body = $"Your status on TaxiWeb application has been changed to {updateData.Status.ToString()}",
+                    // TO DO: Change to driver's email
                     EmailTo = "acastrauss@hotmail.com",
                     Subject = "TaxiWeb status update"
                 });
@@ -83,7 +84,7 @@ namespace TaxiWeb.Controllers
         [HttpPost]
         [Authorize]
         [Route("rate-driver")]
-        public async Task<IActionResult> RateDriver([FromBody] DriverRating driverRating)
+        public async Task<IActionResult> RateDriver([FromBody] RideRating driverRating)
         {
             bool userCanAccessResource = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.CLIENT });
             if (!userCanAccessResource)

@@ -18,17 +18,17 @@ using Models.Email;
 using Models.Ride;
 using Models.UserTypes;
 
-namespace TaxiMainLogic
+namespace BussinesLogic
 {
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiMainLogic : StatelessService, IBussinesLogic
+    internal sealed class BussinesLogic : StatelessService, IBussinesLogic
     {
-        private IAuthDBService authDBService;
+        private IData authDBService;
         private IEmailService emailService;
 
-        public TaxiMainLogic(StatelessServiceContext context, IAuthDBService authDBService, IEmailService emailService)
+        public BussinesLogic(StatelessServiceContext context, IData authDBService, IEmailService emailService)
             : base(context)
         {
             this.authDBService = authDBService;
@@ -65,6 +65,7 @@ namespace TaxiMainLogic
                 {
                     exists |= await authDBService.ExistsWithPwd(type.ToString(), loginData.Email, loginData.Password);
                 }
+                // Google Auth
                 else
                 {
                     exists |= await authDBService.ExistsSocialMediaAuth(type.ToString(), loginData.Email);
@@ -264,7 +265,7 @@ namespace TaxiMainLogic
         #region DriverRatingMethods
 
 
-        public async Task<DriverRating> RateDriver(DriverRating driverRating)
+        public async Task<RideRating> RateDriver(RideRating driverRating)
         {
             var userRides = await GetUsersRides(driverRating.ClientEmail, UserType.CLIENT);
             var userHasThisRide = userRides.Any((ride) => ride.CreatedAtTimestamp == driverRating.RideTimestamp);    

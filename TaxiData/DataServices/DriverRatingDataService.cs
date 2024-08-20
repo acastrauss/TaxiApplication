@@ -10,19 +10,19 @@ using TaxiData.DataImplementations;
 
 namespace TaxiData.DataServices
 {
-    internal class DriverRatingDataService : BaseDataService<Models.UserTypes.DriverRating, AzureStorageWrapper.Entities.DriverRating>
+    internal class DriverRatingDataService : BaseDataService<Models.UserTypes.RideRating, AzureStorageWrapper.Entities.RideRating>
     {
         public DriverRatingDataService(
-            AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating> storageWrapper, 
-            IDTOConverter<AzureStorageWrapper.Entities.DriverRating, 
-            Models.UserTypes.DriverRating> converter, 
-            Synchronizer<AzureStorageWrapper.Entities.DriverRating, 
-            Models.UserTypes.DriverRating> synchronizer, 
+            TablesOperations<AzureStorageWrapper.Entities.RideRating> storageWrapper, 
+            IDTOConverter<AzureStorageWrapper.Entities.RideRating, 
+            Models.UserTypes.RideRating> converter, 
+            Synchronizer<AzureStorageWrapper.Entities.RideRating, 
+            Models.UserTypes.RideRating> synchronizer, 
             IReliableStateManager stateManager
         ) : base(storageWrapper, converter, synchronizer, stateManager)
         {}
 
-        public async Task<Models.UserTypes.DriverRating> RateDriver(Models.UserTypes.DriverRating driverRating)
+        public async Task<Models.UserTypes.RideRating> RateDriver(Models.UserTypes.RideRating driverRating)
         {
             var dict = await GetReliableDictionary();
             using var txWrapper = new StateManagerTransactionWrapper(stateManager.CreateTransaction());
@@ -52,7 +52,7 @@ namespace TaxiData.DataServices
                     if (ratingEntity.DriverEmail.Equals(driverEmail))
                     {
                         cnt += 1;
-                        sum += ratingEntity.Rating;
+                        sum += ratingEntity.Value;
                     }
                 }
             }

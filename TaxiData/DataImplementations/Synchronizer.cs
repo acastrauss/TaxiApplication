@@ -12,12 +12,12 @@ namespace TaxiData.DataImplementations
 {
     internal class Synchronizer<T1, T2> where T1 : AzureBaseEntity 
     {
-        private AzureStorageWrapper<T1> storageWrapper;
+        private TablesOperations<T1> storageWrapper;
         private string ReliableDictName;
         private IDTOConverter<T1, T2> converter;
         private Microsoft.ServiceFabric.Data.IReliableStateManager StateManager;
 
-        public Synchronizer(AzureStorageWrapper<T1> storageWrapper, string realiableDictName, IDTOConverter<T1, T2> converter, Microsoft.ServiceFabric.Data.IReliableStateManager stateManager)
+        public Synchronizer(TablesOperations<T1> storageWrapper, string realiableDictName, IDTOConverter<T1, T2> converter, Microsoft.ServiceFabric.Data.IReliableStateManager stateManager)
         {
             this.storageWrapper = storageWrapper;
             this.ReliableDictName = realiableDictName;

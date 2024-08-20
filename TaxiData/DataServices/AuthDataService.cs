@@ -16,7 +16,7 @@ namespace TaxiData.DataServices
     internal class AuthDataService : BaseDataService<Models.Auth.UserProfile, AzureStorageWrapper.Entities.User>
     {
         public AuthDataService(
-            AzureStorageWrapper<User> storageWrapper,
+            TablesOperations<User> storageWrapper,
             IDTOConverter<User, UserProfile> converter,
             Synchronizer<User, UserProfile> synchronizer,
             IReliableStateManager stateManager

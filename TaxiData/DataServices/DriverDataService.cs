@@ -16,7 +16,7 @@ namespace TaxiData.DataServices
     internal class DriverDataService : BaseDataService<Models.UserTypes.Driver, AzureStorageWrapper.Entities.Driver>
     {
         public DriverDataService(
-            AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> storageWrapper, 
+            TablesOperations<AzureStorageWrapper.Entities.Driver> storageWrapper, 
             IDTOConverter<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> converter, 
             Synchronizer<AzureStorageWrapper.Entities.Driver, Models.UserTypes.Driver> synchronizer,
             IReliableStateManager stateManager

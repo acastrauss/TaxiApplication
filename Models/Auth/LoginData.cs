@@ -23,9 +23,6 @@ namespace Models.Auth
         public string Email { get; set; } = string.Empty;
         
         [DataMember]
-        [Required]
-        [MinLength(64)] // SHA256
-        [MaxLength(64)]
         public string Password { get; set; } = string.Empty;
 
         [DataMember]

@@ -13,7 +13,7 @@ using Models.Chat;
 namespace Contracts.Database
 {
     [ServiceContract]
-    public interface IAuthDBService : IService
+    public interface IData : IService
     {
         [OperationContract]
         Task<bool> Exists(string partitionKey, string rowKey);
@@ -64,7 +64,7 @@ namespace Contracts.Database
         Task<ChatMessage> AddNewMessageToChat(Models.Chat.ChatMessage message);
 
         [OperationContract]
-        Task<DriverRating> RateDriver(DriverRating driverRating);
+        Task<RideRating> RateDriver(RideRating driverRating);
 
         [OperationContract]
         Task<float> GetAverageRatingForDriver(string driverEmail);

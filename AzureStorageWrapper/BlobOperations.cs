@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace AzureStorageWrapper
 {
-    public class AzureBlobWrapper : Contracts.Blob.IBlob
+    public class BlobOperations : Contracts.Blob.IBlob
     {
         private readonly BlobServiceClient blobServiceClient;
         private readonly BlobContainerClient blobContainerClient;
         private readonly string containerName;
 
-        public AzureBlobWrapper(string storageUri, string containerName)
+        public BlobOperations(string storageUri, string containerName)
         {
             blobServiceClient = new BlobServiceClient(storageUri);
             this.containerName = containerName;

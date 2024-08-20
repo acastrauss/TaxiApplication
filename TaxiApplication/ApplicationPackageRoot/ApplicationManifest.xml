@@ -11,7 +11,7 @@
     <ConfigOverrides />
   </ServiceManifestImport>
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="TaxiMainLogicPkg" ServiceManifestVersion="1.0.0" />
+    <ServiceManifestRef ServiceManifestName="BussinesLogicPkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
   </ServiceManifestImport>
   <ServiceManifestImport>

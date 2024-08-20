@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Services.Runtime;
 
-namespace TaxiMainLogic
+namespace BussinesLogic
 {
-    [EventSource(Name = "MyCompany-TaxiApplication-TaxiMainLogic")]
+    [EventSource(Name = "MyCompany-TaxiApplication-BussinesLogic")]
 internal sealed class ServiceEventSource : EventSource
 {
     public static readonly ServiceEventSource Current = new ServiceEventSource();

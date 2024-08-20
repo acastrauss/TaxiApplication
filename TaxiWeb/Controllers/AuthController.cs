@@ -98,7 +98,6 @@ namespace TaxiWeb.Controllers
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            // TO DO: Add to config
             var key = Encoding.ASCII.GetBytes(jwtConfig.Value.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {

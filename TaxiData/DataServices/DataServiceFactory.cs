@@ -22,12 +22,12 @@ namespace TaxiData.DataServices
 
         public DataServiceFactory(
             IReliableStateManager stateManager,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating> driverRatingStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Chat> chatStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.ChatMessage> chatMessageStorageWrapper
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.User> userStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.RideRating> driverRatingStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Chat> chatStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.ChatMessage> chatMessageStorageWrapper
         ) 
         {
             var userDto = new UserDTO();
@@ -72,9 +72,9 @@ namespace TaxiData.DataServices
             DriverRatingDataService = new DriverRatingDataService(
                 driverRatingStorageWrapper,
                 driverRatingDto,
-                new DataImplementations.Synchronizer<DriverRating, Models.UserTypes.DriverRating>(
+                new DataImplementations.Synchronizer<RideRating, Models.UserTypes.RideRating>(
                     driverRatingStorageWrapper,
-                    typeof(DriverRating).Name,
+                    typeof(RideRating).Name,
                     driverRatingDto,
                     stateManager
                 ),
@@ -107,8 +107,6 @@ namespace TaxiData.DataServices
                 stateManager,
                 ChatMessagesDataService
             );
-
-           
         }
 
         public async Task SyncAzureTablesWithDict()

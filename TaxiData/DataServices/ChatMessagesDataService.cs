@@ -15,7 +15,7 @@ namespace TaxiData.DataServices
     internal class ChatMessagesDataService : BaseDataService<Models.Chat.ChatMessage, AzureStorageWrapper.Entities.ChatMessage>
     {
         public ChatMessagesDataService(
-            AzureStorageWrapper<AzureStorageWrapper.Entities.ChatMessage> storageWrapper, 
+            TablesOperations<AzureStorageWrapper.Entities.ChatMessage> storageWrapper, 
             IDTOConverter<AzureStorageWrapper.Entities.ChatMessage, Models.Chat.ChatMessage> converter,
             Synchronizer<AzureStorageWrapper.Entities.ChatMessage, Models.Chat.ChatMessage> synchronizer, 
             IReliableStateManager stateManager) : 

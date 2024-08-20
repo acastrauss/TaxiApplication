@@ -42,6 +42,7 @@ namespace Contracts.Logic
         Task<IEnumerable<Driver>> ListAllDrivers();
 
         #endregion
+        
         #region RideMethods
 
         [OperationContract]
@@ -66,6 +67,7 @@ namespace Contracts.Logic
         Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp);
 
         #endregion
+        
         #region EmailMethods
 
         [OperationContract]
@@ -79,8 +81,9 @@ namespace Contracts.Logic
         [OperationContract]
         Task<ChatMessage> AddNewMessageToChat(Models.Chat.ChatMessage message);
         #endregion
+
         [OperationContract]
-        Task<DriverRating> RateDriver(DriverRating driverRating);
+        Task<RideRating> RateDriver(RideRating driverRating);
 
         [OperationContract]
         Task<float> GetAverageRatingForDriver(string driverEmail);

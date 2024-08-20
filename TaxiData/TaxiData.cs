@@ -22,18 +22,18 @@ namespace TaxiData
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class TaxiData : StatefulService, IAuthDBService
+    internal sealed class TaxiData : StatefulService, IData
     {
         private readonly DataServiceFactory dataServiceFactory;
 
         public TaxiData(
             StatefulServiceContext context,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User> userStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating> driverRatingWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Chat> chatStorageWrapper,
-            AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.ChatMessage> chatMsgStorageWrapper
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.User> userStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Driver> driverStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Ride> rideStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.RideRating> driverRatingWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Chat> chatStorageWrapper,
+            AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.ChatMessage> chatMsgStorageWrapper
         )
             : base(context)
         {
@@ -270,7 +270,7 @@ namespace TaxiData
         #endregion
 
         #region DriverRatingMethods
-        public async Task<Models.UserTypes.DriverRating> RateDriver(Models.UserTypes.DriverRating driverRating)
+        public async Task<Models.UserTypes.RideRating> RateDriver(Models.UserTypes.RideRating driverRating)
         {
             return await dataServiceFactory.DriverRatingDataService.RateDriver(driverRating);
         }

@@ -37,7 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TaxiData\TaxiData.csproj" />
-    <ProjectReference Include="..\TaxiMainLogic\TaxiMainLogic.csproj" />
+    <ProjectReference Include="..\BussinesLogic\BussinesLogic.csproj" />
     <ProjectReference Include="..\TaxiWeb\TaxiWeb.csproj">
       <ServiceLaunchUrl>http://localhost:{ServicePort}/weatherforecast</ServiceLaunchUrl>
     </ProjectReference>
