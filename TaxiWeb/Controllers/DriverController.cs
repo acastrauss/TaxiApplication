@@ -50,7 +50,7 @@ namespace TaxiWeb.Controllers
             return true;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
         [Route("driver-status")]
         public async Task<IActionResult> GetDriverStatus([FromBody] DriverEmail driverEmail)
