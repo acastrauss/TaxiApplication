@@ -76,16 +76,26 @@ namespace TaxiWeb
             {
                 return;
             }
+
+            var chatForMsg = await bussinesLogic.CreateNewOrGetExistingChat(new Models.Chat.Chat()
+            {
+                clientEmail = createdMessage.clientEmail,
+                driverEmail = createdMessage.driverEmail,
+                messages = new List<Models.Chat.ChatMessage>(),
+                rideCreatedAtTimestamp = createdMessage.rideCreadtedAtTimestamp,
+                status = ChatStatus.ACTIVE
+            });
+
             var connectionIdClient = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.clientEmail).Key;
             if (connectionIdClient != null)
             {
-                await Clients.Client(connectionIdClient).SendAsync("ReceiveMessage", createdMessage.clientEmail, createdMessage);
+                await Clients.Client(connectionIdClient).SendAsync("ReceiveMessage", createdMessage.clientEmail, chatForMsg);
             }
             
             var connectionIdDriver = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.driverEmail).Key;
             if (connectionIdDriver != null)
             {
-                await Clients.Client(connectionIdDriver).SendAsync("ReceiveMessage", createdMessage.driverEmail, createdMessage);
+                await Clients.Client(connectionIdDriver).SendAsync("ReceiveMessage", createdMessage.driverEmail, chatForMsg);
             }
         }
     }
