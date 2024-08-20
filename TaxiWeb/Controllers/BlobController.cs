@@ -13,9 +13,9 @@ namespace TaxiWeb.Controllers
     [ApiController]
     public class BlobController : ControllerBase
     {
-        private readonly IAuthService authService;
+        private readonly IBussinesLogic authService;
         private readonly IBlob blob;
-        public BlobController(IAuthService authService, IBlob blob)
+        public BlobController(IBussinesLogic authService, IBlob blob)
         {
             this.authService = authService;
             this.blob = blob;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Models.UserTypes
 {
     [DataContract]
-    public class DriverRating
+    public class RideRating
     {
         [DataMember]
         public string ClientEmail { get; set; }
@@ -18,6 +18,6 @@ namespace Models.UserTypes
         public string DriverEmail { get; set; }
         [DataMember]
         [System.ComponentModel.DataAnnotations.Range(1, 5)]
-        public int Rating { get; set; }
+        public int Value { get; set; }
     }
 }

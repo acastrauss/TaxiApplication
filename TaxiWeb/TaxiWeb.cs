@@ -19,6 +19,7 @@ using System.Text;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using TaxiWeb.ConfigModels;
+using TaxiWeb.Services;
 
 namespace TaxiWeb
 {
@@ -73,24 +74,30 @@ namespace TaxiWeb
 
                          builder.Services.AddCors(options =>
                             {
-                                options.AddPolicy("AllowSpecificOrigins",
+                                options.AddPolicy("CorsPolicy",
                                     builder =>
                                     {
-                                        builder.WithOrigins("http://localhost:3000") // Add your frontend URL here
+                                        builder
                                             .AllowAnyHeader()
-                                            .AllowAnyMethod();
+                                            .AllowAnyMethod()
+                                            .WithOrigins("http://localhost:3000") // Add your frontend URL here
+                                            .AllowCredentials();
                                     });
                             });
+
 
                         builder.Services.Configure<JWTConfig>(builder.Configuration.GetSection("JWT"));
                         var jwtSecret = builder.Configuration.GetSection("JWT").GetValue<string>("Secret");
 
                         var azureConnString = builder.Configuration.GetSection("AzureStorage").GetValue<string>("ConnectionString");
-                        builder.Services.AddSingleton<Contracts.Blob.IBlob>(new AzureStorageWrapper.AzureBlobWrapper(azureConnString, "profile-images"));
+                        builder.Services.AddSingleton<Contracts.Blob.IBlob>(new AzureStorageWrapper.BlobOperations(azureConnString, "profile-images"));
 
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
-                        var proxy = ServiceProxy.Create<IAuthService>(new Uri("fabric:/TaxiApplication/TaxiMainLogic"));
-                        builder.Services.AddSingleton<IAuthService>(proxy);
+                        
+                        var proxy = ServiceProxy.Create<IBussinesLogic>(new Uri("fabric:/TaxiApplication/BussinesLogic"));
+                        builder.Services.AddSingleton<IBussinesLogic>(proxy);
+
+                        builder.Services.AddSingleton<IRequestAuth, RequestAuth>();
 
                         var jwtAudience = builder.Configuration.GetSection("JWT").GetValue<string>("Audience");
                         var jwtIssuer = builder.Configuration.GetSection("JWT").GetValue<string>("Issuer");
@@ -113,18 +120,38 @@ namespace TaxiWeb
                                 ValidAudience = jwtAudience,
                                 IssuerSigningKey = new SymmetricSecurityKey(key),
                             };
+
+                            x.Events = new JwtBearerEvents
+                            {
+                                OnMessageReceived = context =>
+                                {
+                                    var accessToken = context.Request.Query["access_token"];
+                                    var path = context.HttpContext.Request.Path;
+                                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+                                    {
+                                        context.Token = accessToken;
+                                    }
+                                    return Task.CompletedTask;
+                                }
+                            };
                         });
                         
+                        builder.Services.AddSignalR();
                         
                         // Add services to the container.
                         
                         builder.Services.AddControllers();
                         
                         var app = builder.Build();
-                        // Configure the HTTP request pipeline.
-                        app.UseCors("AllowSpecificOrigins");
+                        app.UseRouting();
+                        app.UseCors("CorsPolicy");
                         app.UseAuthentication();
                         app.UseAuthorization();
+                        app.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapHub<ChatHub>("/chathub");
+                        });
+                        // Configure the HTTP request pipeline.
                         
                         app.MapControllers();
 

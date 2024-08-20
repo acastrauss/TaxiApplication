@@ -6,29 +6,29 @@ using System.Threading.Tasks;
 
 namespace AzureStorageWrapper.DTO
 {
-    public class DriverRatingDTO : IDTOConverter<Entities.DriverRating, Models.UserTypes.DriverRating>
+    public class DriverRatingDTO : IDTOConverter<Entities.RideRating, Models.UserTypes.RideRating>
     {
-        public Entities.DriverRating AppModelToAzure(Models.UserTypes.DriverRating appModel)
+        public Entities.RideRating AppModelToAzure(Models.UserTypes.RideRating appModel)
         {
-            return new Entities.DriverRating()
+            return new Entities.RideRating()
             {
                 ClientEmail = appModel.ClientEmail,
                 DriverEmail = appModel.DriverEmail,
                 PartitionKey = appModel.DriverEmail,
-                Rating = appModel.Rating,
+                Value = appModel.Value,
                 RideTimestamp = appModel.RideTimestamp,
                 RowKey = appModel.RideTimestamp.ToString(),
             };
         }
 
-        public Models.UserTypes.DriverRating AzureToAppModel(Entities.DriverRating azureModel)
+        public Models.UserTypes.RideRating AzureToAppModel(Entities.RideRating azureModel)
         {
-            return new Models.UserTypes.DriverRating()
+            return new Models.UserTypes.RideRating()
             {
                 ClientEmail = azureModel.ClientEmail,
                 DriverEmail = azureModel.DriverEmail,
                 RideTimestamp = azureModel.RideTimestamp,
-                Rating = azureModel.Rating,
+                Value = azureModel.Value,
             };
         }
     }

@@ -7,9 +7,9 @@ using Contracts.Database;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Models.Auth;
-using TaxiMainLogic.Email;
+using BussinesLogic.Email;
 
-namespace TaxiMainLogic
+namespace BussinesLogic
 {
     internal static class Program
     {
@@ -25,10 +25,10 @@ namespace TaxiMainLogic
                 // When Service Fabric creates an instance of this service type,
                 // an instance of the class is created in this host process.
                 
-                var authDBProxy = ServiceProxy.Create<IAuthDBService>(new Uri("fabric:/TaxiApplication/TaxiData"),
+                var authDBProxy = ServiceProxy.Create<IData>(new Uri("fabric:/TaxiApplication/TaxiData"),
                     new Microsoft.ServiceFabric.Services.Client.ServicePartitionKey(1));
 
-                ServiceRuntime.RegisterServiceAsync("TaxiMainLogicType",
+                ServiceRuntime.RegisterServiceAsync("BussinesLogicType",
                     context => {
                         var gmailConfigSection = context.CodePackageActivationContext
                         .GetConfigurationPackageObject("Config")
@@ -38,10 +38,10 @@ namespace TaxiMainLogic
                         var gmailSendFromMail = gmailConfigSection.Parameters["GmailSendFrom"].Value;
                         var emailService = new EmailService(gmailSendFromMail, gmailAppPassword);
 
-                        return new TaxiMainLogic(context, authDBProxy, emailService);
+                        return new BussinesLogic(context, authDBProxy, emailService);
                     }).GetAwaiter().GetResult();
 
-                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(TaxiMainLogic).Name);
+                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(BussinesLogic).Name);
 
                 // Prevents this host process from terminating so services keep running.
                 Thread.Sleep(Timeout.Infinite);

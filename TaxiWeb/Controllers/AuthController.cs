@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TaxiWeb.ConfigModels;
+using TaxiWeb.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,13 +20,15 @@ namespace TaxiWeb.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService authService;
+        private readonly IBussinesLogic authService;
         private readonly IOptions<JWTConfig> jwtConfig;
+        private readonly IRequestAuth requestAuth;
 
-        public AuthController(IAuthService authService, IOptions<JWTConfig> jwtConfig)
+        public AuthController(IBussinesLogic authService, IOptions<JWTConfig> jwtConfig, IRequestAuth requestAuth)
         {
             this.authService = authService;
             this.jwtConfig = jwtConfig;
+            this.requestAuth = requestAuth;
         }
 
         [HttpGet]
@@ -36,37 +39,19 @@ namespace TaxiWeb.Controllers
         }
         
         [HttpGet]
-        [Route("jwt-check")]
-        [Authorize]
-        public async Task<IActionResult> CheckJwt()
-        {
-            var userEmail = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-            var userType = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
-            var token = await HttpContext.GetTokenAsync("access_token");
-            return Ok();
-        }
-
-        [HttpGet]
         [Authorize]
         [Route("profile")]
         public async Task<IActionResult> GetUserProfile()
         {
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+            var userEmail = requestAuth.GetUserEmailFromContext(HttpContext);
+            var userType = requestAuth.GetUserTypeFromContext(HttpContext);
 
-            if (userEmailClaim == null || userTypeClaim == null)
+            if (userEmail == null || userType == null)
             {
                 return BadRequest("Invalid JWT");
             }
 
-            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
-
-            if (!isParsed)
-            {
-                return BadRequest("Invalid JWT");
-            }
-
-            return Ok(await authService.GetUserProfile(userEmailClaim.Value, userType));
+            return Ok(await authService.GetUserProfile(userEmail, (UserType)userType));
         }
 
         [HttpPatch]
@@ -74,22 +59,15 @@ namespace TaxiWeb.Controllers
         [Route("update-profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfileRequest updateProfileRequest)
         {
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+            var userEmail = requestAuth.GetUserEmailFromContext(HttpContext);
+            var userType = requestAuth.GetUserTypeFromContext(HttpContext);
 
-            if (userEmailClaim == null || userTypeClaim == null)
+            if (userEmail == null || userType == null)
             {
                 return BadRequest("Invalid JWT");
             }
 
-            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
-
-            if (!isParsed)
-            {
-                return BadRequest("Invalid JWT");
-            }
-
-            return Ok(await authService.UpdateUserProfile(updateProfileRequest, userEmailClaim.Value, userType));
+            return Ok(await authService.UpdateUserProfile(updateProfileRequest, userEmail, (UserType)userType));
         }
 
         // POST api/<AuthController>/register
@@ -120,7 +98,6 @@ namespace TaxiWeb.Controllers
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            // TO DO: Add to config
             var key = Encoding.ASCII.GetBytes(jwtConfig.Value.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {

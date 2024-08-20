@@ -31,18 +31,24 @@ namespace TaxiData
                             .Parameters["AzureTableConnectionString"].Value;
 
                         var userStorageWrapper = 
-                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.User>(azureTableConnString, "user");
+                            new AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.User>(azureTableConnString, "user");
 
                         var driverStorageWrapper =
-                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Driver>(azureTableConnString, "driver");
+                            new AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Driver>(azureTableConnString, "driver");
 
                         var rideStorageWrapper =
-                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.Ride>(azureTableConnString, "ride");
+                            new AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Ride>(azureTableConnString, "ride");
 
                         var driverRatingStorageWrapper =
-                            new AzureStorageWrapper.AzureStorageWrapper<AzureStorageWrapper.Entities.DriverRating>(azureTableConnString, "rating");
+                            new AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.RideRating>(azureTableConnString, "rating");
 
-                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper, rideStorageWrapper, driverRatingStorageWrapper);
+                        var chatStorageWrapper =
+                            new AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.Chat>(azureTableConnString, "chat");
+
+                        var chatMsgStorageWrapper =
+                            new AzureStorageWrapper.TablesOperations<AzureStorageWrapper.Entities.ChatMessage>(azureTableConnString, "chatMessages");
+
+                        return new TaxiData(context, userStorageWrapper, driverStorageWrapper, rideStorageWrapper, driverRatingStorageWrapper, chatStorageWrapper, chatMsgStorageWrapper);
                     }
                     
                     

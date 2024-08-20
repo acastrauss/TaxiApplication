@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Models.Auth;
 using Models.UserTypes;
 using System.Security.Claims;
+using TaxiWeb.Services;
 using static TaxiWeb.Controllers.DriverController;
 
 namespace TaxiWeb.Controllers
@@ -14,40 +15,12 @@ namespace TaxiWeb.Controllers
     [ApiController]
     public class DriverController : ControllerBase
     {
-        public class DriverEmail
-        {
-            public string Email { get; set; }
-        }
-
-        private readonly IAuthService authService;
-        public DriverController(IAuthService authService)
+        private readonly IBussinesLogic authService;
+        private readonly IRequestAuth requestAuth;
+        public DriverController(IBussinesLogic authService, IRequestAuth requestAuth)
         {
             this.authService = authService;
-        }
-
-        private bool DoesUserHasRightsToAccess(UserType[] allowedTypes)
-        {
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
-
-            if (userEmailClaim == null || userTypeClaim == null)
-            {
-                return false;
-            }
-
-            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
-
-            if (!isParsed)
-            {
-                return false;
-            }
-
-            if (!allowedTypes.Contains(userType))
-            {
-                return false;
-            }
-
-            return true;
+            this.requestAuth = requestAuth;
         }
 
         [HttpPost]
@@ -55,7 +28,8 @@ namespace TaxiWeb.Controllers
         [Route("driver-status")]
         public async Task<IActionResult> GetDriverStatus([FromBody] DriverEmail driverEmail)
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN, UserType.DRIVER }))
+            bool userCanAccessResource = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.ADMIN, UserType.DRIVER });
+            if (!userCanAccessResource)
             {
                 return Unauthorized();
             }
@@ -65,19 +39,14 @@ namespace TaxiWeb.Controllers
             return Ok(driverStatus);
         }
 
-        public class UpdateDriverStatusData
-        {
-            public string Email { get; set; }
-            public DriverStatus Status { get; set; }
-        }
-
         [HttpPatch]
         // TO DO: Change to patch
         [Authorize]
         [Route("driver-status")]
         public async Task<IActionResult> UpdateDriverStatus([FromBody] UpdateDriverStatusData updateData)
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN }))
+            bool userCanAccessResource = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.ADMIN });
+            if (!userCanAccessResource)
             {
                 return Unauthorized();
             }
@@ -89,6 +58,7 @@ namespace TaxiWeb.Controllers
                 await authService.SendEmail(new Models.Email.SendEmailRequest()
                 {
                     Body = $"Your status on TaxiWeb application has been changed to {updateData.Status.ToString()}",
+                    // TO DO: Change to driver's email
                     EmailTo = "acastrauss@hotmail.com",
                     Subject = "TaxiWeb status update"
                 });
@@ -102,7 +72,8 @@ namespace TaxiWeb.Controllers
         [Route("list-drivers")]
         public async Task<IActionResult> ListAllDrivers()
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN }))
+            bool userCanAccessResource = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.ADMIN });
+            if (!userCanAccessResource)
             {
                 return Unauthorized();
             }
@@ -113,9 +84,10 @@ namespace TaxiWeb.Controllers
         [HttpPost]
         [Authorize]
         [Route("rate-driver")]
-        public async Task<IActionResult> RateDriver([FromBody] DriverRating driverRating)
+        public async Task<IActionResult> RateDriver([FromBody] RideRating driverRating)
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.CLIENT }))
+            bool userCanAccessResource = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.CLIENT });
+            if (!userCanAccessResource)
             {
                 return Unauthorized();
             }
@@ -128,7 +100,8 @@ namespace TaxiWeb.Controllers
         [Route("avg-rating-driver")]
         public async Task<IActionResult> AverageRatingDriver([FromBody] DriverEmail driverEmail)
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.ADMIN }))
+            bool userCanAccessResource = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.ADMIN });
+            if (!userCanAccessResource)
             {
                 return Unauthorized();
             }
