@@ -35,7 +35,7 @@ namespace TaxiData.DataServices
 
             if (existing.HasValue)
             {
-                var msgs = await messagesDataService.GetMessagesForChat(chat.clientEmail, chat.driverEmail, chat.rideCreatedAtTimestamp);
+                var msgs = await messagesDataService.GetMessagesForChat(chat.clientEmail, chat.driverEmail, (long)chat.rideCreatedAtTimestamp);
                 if(msgs != null)
                 {
                     existing.Value.messages = msgs.ToList();

@@ -25,7 +25,7 @@ namespace Models.Chat
         public string driverEmail { get; set; }
         [DataMember]
         [Required]
-        public long rideCreatedAtTimestamp { get; set; }
+        public long? rideCreatedAtTimestamp { get; set; }
         [DataMember]
         public List<ChatMessage> messages { get; set; }
         [DataMember]
