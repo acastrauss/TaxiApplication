@@ -23,7 +23,7 @@ namespace TaxiWeb.Controllers
             this.requestAuth = requestAuth;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
         [Route("driver-status")]
         public async Task<IActionResult> GetDriverStatus([FromBody] DriverEmail driverEmail)
