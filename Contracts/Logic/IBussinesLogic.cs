@@ -9,12 +9,14 @@ using Models.Auth;
 using Models.UserTypes;
 using Models.Ride;
 using Models.Email;
+using Models.Chat;
 
 namespace Contracts.Logic
 {
     [ServiceContract]
-    public interface IAuthService : IService
+    public interface IBussinesLogic : IService
     {
+        #region AuthAndUserMethods
         [OperationContract]
         Task<Tuple<bool, UserType>> Login(LoginData loginData);
 
@@ -27,6 +29,9 @@ namespace Contracts.Logic
         [OperationContract]
         Task<UserProfile> UpdateUserProfile(UpdateUserProfileRequest updateUserProfileRequest, string userEmail, UserType userType);
 
+        #endregion
+
+        #region DriverMethods
         [OperationContract]
         Task<DriverStatus> GetDriverStatus(string driverEmail);
 
@@ -35,6 +40,10 @@ namespace Contracts.Logic
 
         [OperationContract]
         Task<IEnumerable<Driver>> ListAllDrivers();
+
+        #endregion
+        
+        #region RideMethods
 
         [OperationContract]
         Task<EstimateRideResponse> EstimateRide(EstimateRideRequest request);
@@ -57,11 +66,24 @@ namespace Contracts.Logic
         [OperationContract]
         Task<Ride> GetRideStatus(string clientEmail, long rideCreatedAtTimestamp);
 
-        [OperationContract]
-        Task<bool> SendEmail(SendEmailRequest sendEmailRequest);
+        #endregion
+        
+        #region EmailMethods
 
         [OperationContract]
-        Task<DriverRating> RateDriver(DriverRating driverRating);
+        Task<bool> SendEmail(SendEmailRequest sendEmailRequest);
+        #endregion
+
+        #region ChatMethods
+        [OperationContract]
+        Task<Chat> CreateNewOrGetExistingChat(Models.Chat.Chat chat);
+
+        [OperationContract]
+        Task<ChatMessage> AddNewMessageToChat(Models.Chat.ChatMessage message);
+        #endregion
+
+        [OperationContract]
+        Task<RideRating> RateDriver(RideRating driverRating);
 
         [OperationContract]
         Task<float> GetAverageRatingForDriver(string driverEmail);

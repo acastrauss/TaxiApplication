@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Models.Auth;
 using Models.Ride;
 using System.Security.Claims;
+using TaxiWeb.Services;
 
 namespace TaxiWeb.Controllers
 {
@@ -12,35 +13,12 @@ namespace TaxiWeb.Controllers
     [ApiController]
     public class RideController : ControllerBase
     {
-        private readonly IAuthService authService;
-        public RideController(IAuthService authService)
+        private readonly IBussinesLogic authService;
+        private readonly IRequestAuth requestAuth;
+        public RideController(IBussinesLogic authService, IRequestAuth requestAuth)
         {
             this.authService = authService;
-        }
-
-        private bool DoesUserHasRightsToAccess(UserType[] allowedTypes)
-        {
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
-
-            if (userEmailClaim == null || userTypeClaim == null)
-            {
-                return false;
-            }
-
-            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
-
-            if (!isParsed)
-            {
-                return false;
-            }
-
-            if (!allowedTypes.Contains(userType))
-            {
-                return false;
-            }
-
-            return true;
+            this.requestAuth = requestAuth;
         }
 
         [HttpPost]
@@ -48,7 +26,8 @@ namespace TaxiWeb.Controllers
         [Route("estimate-ride")]
         public async Task<IActionResult> EstimateRide([FromBody] EstimateRideRequest request)
         {
-            if(!DoesUserHasRightsToAccess(new UserType[] { UserType.CLIENT }))
+            var userHasRightToAccess = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.CLIENT });
+            if(!userHasRightToAccess)
             {
                 return Unauthorized();
             }
@@ -61,19 +40,20 @@ namespace TaxiWeb.Controllers
         [Route("create-ride")]
         public async Task<IActionResult> CreateRide([FromBody] CreateRideRequest request)
         {
-            // TO DO: Take client email from JWT
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.CLIENT }))
+            var userHasRightToAccess = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.CLIENT });
+            if (!userHasRightToAccess)
             {
                 return Unauthorized();
             }
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
 
-            if (userEmailClaim == null)
+            var userEmail = requestAuth.GetUserEmailFromContext(HttpContext);
+
+            if (userEmail == null)
             {
                 return BadRequest("Invalid JWT");
             }
 
-            var res = await authService.CreateRide(request, userEmailClaim.Value);
+            var res = await authService.CreateRide(request, userEmail);
 
             if (res == null) 
             {
@@ -88,35 +68,41 @@ namespace TaxiWeb.Controllers
         [Route("update-ride-status")]
         public async Task<IActionResult> UpdateRideStatus([FromBody] UpdateRideRequest request)
         {
+            var userHasRightToAccess = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.CLIENT, UserType.DRIVER });
+
             // Client will update once ride is finished, Driver will update when accepting the ride
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.CLIENT, UserType.DRIVER }))
+            if (!userHasRightToAccess)
             {
                 return Unauthorized();
             }
 
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+            var userEmail = requestAuth.GetUserEmailFromContext(HttpContext);
+            var userType = requestAuth.GetUserTypeFromContext(HttpContext);
 
-            if (userEmailClaim == null || userTypeClaim == null) 
+            if (userEmail == null || userType == null) 
             {
                 return BadRequest("Invalid JWT");
             }
 
-            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
-
-            if (!isParsed)
-            {
-                return BadRequest("Invalid JWT");
-            }
-
-            var validUpdate = (userType == UserType.CLIENT && request.Status == RideStatus.COMPLETED) || (userType == UserType.DRIVER && request.Status == RideStatus.ACCEPTED);
+            var validUpdate = 
+                (userType == UserType.CLIENT && request.Status == RideStatus.COMPLETED) 
+                || (userType == UserType.DRIVER && request.Status == RideStatus.ACCEPTED);
 
             if (!validUpdate)
             {
                 return Unauthorized("Can not update ride with given parameters");
             }
 
-            return Ok(await authService.UpdateRide(request, userEmailClaim.Value));
+            if(userType == UserType.DRIVER)
+            {
+                var driverStatus = await authService.GetDriverStatus(userEmail);
+                if (driverStatus != Models.UserTypes.DriverStatus.VERIFIED)
+                {
+                    return Unauthorized($"This driver can not accept rides as he is {driverStatus}");
+                }
+            }
+
+            return Ok(await authService.UpdateRide(request, userEmail));
         }
 
         [HttpGet]
@@ -124,23 +110,23 @@ namespace TaxiWeb.Controllers
         [Route("get-new-rides")]
         public async Task<IActionResult> GetNewRides()
         {
-            if (!DoesUserHasRightsToAccess(new UserType[] { UserType.DRIVER }))
+            var userHasRightToAccess = requestAuth.DoesUserHaveRightsToAccessResource(HttpContext, new UserType[] { UserType.DRIVER });
+            if (!userHasRightToAccess)
             {
                 return Unauthorized();
             }
-
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-
-            if (userEmailClaim == null)
+            
+            var userEmail = requestAuth.GetUserEmailFromContext(HttpContext);
+            if (userEmail == null)
             {
-                return BadRequest("Invalid JWT");
+                return Unauthorized("Bad user email");
             }
 
-            var driverStatus = await authService.GetDriverStatus(userEmailClaim.Value);
+            var driverStatus = await authService.GetDriverStatus(userEmail);
 
             if(driverStatus != Models.UserTypes.DriverStatus.VERIFIED)
             {
-                return Unauthorized($"Driver is {driverStatus} and can not se new rides");
+                return Unauthorized($"This driver can not see new rides as he is {driverStatus}");
             }
 
             return Ok(await authService.GetNewRides());
@@ -151,22 +137,15 @@ namespace TaxiWeb.Controllers
         [Route("get-user-rides")]
         public async Task<IActionResult> GetUserRides()
         {
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+            var userEmail = requestAuth.GetUserEmailFromContext(HttpContext);
+            var userType = requestAuth.GetUserTypeFromContext(HttpContext);
 
-            if (userEmailClaim == null || userTypeClaim == null)
+            if (userEmail == null || userType == null)
             {
                 return BadRequest("Invalid JWT");
             }
 
-            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
-
-            if (!isParsed)
-            {
-                return BadRequest("Invalid JWT");
-            }
-
-            return Ok(await authService.GetUsersRides(userEmailClaim.Value, userType));
+            return Ok(await authService.GetUsersRides(userEmail, (UserType)userType));
         }
 
         [HttpPost]
@@ -174,17 +153,10 @@ namespace TaxiWeb.Controllers
         [Route("get-ride")]
         public async Task<IActionResult> GetRideStatus([FromBody] GetRideStatusRequest getRideStatusRequest)
         {
-            var userEmailClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Email);
-            var userTypeClaim = HttpContext.User.Claims.FirstOrDefault((c) => c.Type == ClaimTypes.Role);
+            var userEmail = requestAuth.GetUserEmailFromContext(HttpContext);
+            var userType = requestAuth.GetUserTypeFromContext(HttpContext);
 
-            if (userEmailClaim == null || userTypeClaim == null)
-            {
-                return BadRequest("Invalid JWT");
-            }
-
-            var isParsed = Enum.TryParse(userTypeClaim.Value, out UserType userType);
-
-            if (!isParsed)
+            if (userEmail == null || userType == null)
             {
                 return BadRequest("Invalid JWT");
             }
@@ -196,8 +168,8 @@ namespace TaxiWeb.Controllers
                 return BadRequest("Failed to get ride with those parameters");
             }
 
-            var userIsDriverForRide = userType == UserType.DRIVER && userEmailClaim.Value.Equals(ride.DriverEmail);
-            var userIsClientForRide = userType == UserType.CLIENT && userEmailClaim.Value.Equals(ride.ClientEmail);
+            var userIsDriverForRide = userType == UserType.DRIVER && userEmail.Equals(ride.DriverEmail);
+            var userIsClientForRide = userType == UserType.CLIENT && userEmail.Equals(ride.ClientEmail);
             var userIsAdmin = userType == UserType.ADMIN;
 
             if(!userIsClientForRide && !userIsDriverForRide && !userIsAdmin)

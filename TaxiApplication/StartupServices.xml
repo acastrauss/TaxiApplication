@@ -4,7 +4,7 @@
     <Parameter Name="TaxiData_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="TaxiData_PartitionCount" DefaultValue="1" />
     <Parameter Name="TaxiData_TargetReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="TaxiMainLogic_InstanceCount" DefaultValue="-1" />
+    <Parameter Name="BussinesLogic_InstanceCount" DefaultValue="-1" />
     <Parameter Name="TaxiWeb_InstanceCount" DefaultValue="-1" />
   </Parameters>
   <Services>
@@ -18,8 +18,8 @@
         <UniformInt64Partition PartitionCount="[TaxiData_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
-    <Service Name="TaxiMainLogic" ServicePackageActivationMode="ExclusiveProcess">
-      <StatelessService ServiceTypeName="TaxiMainLogicType" InstanceCount="[TaxiMainLogic_InstanceCount]">
+    <Service Name="BussinesLogic" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="BussinesLogicType" InstanceCount="[BussinesLogic_InstanceCount]">
         <SingletonPartition />
       </StatelessService>
     </Service>

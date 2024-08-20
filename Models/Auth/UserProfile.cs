@@ -18,7 +18,7 @@ namespace Models.Auth
 
     [DataContract]
     [KnownType(typeof(Driver))]
-    public class UserProfile
+    public class UserProfile 
     {
         [DataMember]
         [Required]
@@ -31,9 +31,6 @@ namespace Models.Auth
         public string Email { get; set; } = string.Empty;
         
         [DataMember]
-        [Required]
-        [MinLength(64)] // SHA256
-        [MaxLength(64)] 
         public string Password { get; set; } = string.Empty;
         
         [DataMember]
@@ -59,5 +56,6 @@ namespace Models.Auth
         [Required]
         [DataType(DataType.ImageUrl)]
         public string ImagePath { get; set; } = string.Empty;
+
     }
 }

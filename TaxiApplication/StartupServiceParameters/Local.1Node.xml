@@ -4,7 +4,7 @@
     <Parameter Name="TaxiData_PartitionCount" Value="1" />
     <Parameter Name="TaxiData_MinReplicaSetSize" Value="1" />
     <Parameter Name="TaxiData_TargetReplicaSetSize" Value="1" />
-    <Parameter Name="TaxiMainLogic_InstanceCount" Value="1" />
+    <Parameter Name="BussinesLogic_InstanceCount" Value="1" />
     <Parameter Name="TaxiWeb_InstanceCount" Value="1" />
   </Parameters>
 </StartupServices>
