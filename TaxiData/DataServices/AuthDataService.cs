@@ -107,7 +107,7 @@ namespace TaxiData.DataServices
             return false;
         }
 
-        public async Task<bool> Create<T>(T appModel) where T : UserProfile
+        public async Task<bool> Create(UserProfile appModel)
         {
             var dict = await GetReliableDictionary();
             using var txWrapper = new StateManagerTransactionWrapper(stateManager.CreateTransaction());

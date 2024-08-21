@@ -76,5 +76,13 @@ namespace TaxiData.DataServices
         }
 
 
+        public async Task<bool> Create(Models.UserTypes.Driver driver)
+        {
+            var dict = await GetReliableDictionary();
+            using var txWrapper = new StateManagerTransactionWrapper(stateManager.CreateTransaction());
+            var dictKey = $"{driver.Type}{driver.Email}";
+            var created = await dict.AddOrUpdateAsync(txWrapper.transaction, dictKey, driver, (key, value) => value);
+            return created != null;
+        }
     }
 }
