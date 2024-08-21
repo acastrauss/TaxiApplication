@@ -3,6 +3,7 @@ using Contracts.Logic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Models.Chat;
+using System;
 using System.Collections.Concurrent;
 using System.Security.Claims;
 using System.ServiceModel.Channels;
@@ -76,16 +77,24 @@ namespace TaxiWeb
             {
                 return;
             }
+            var createdChat = await bussinesLogic.CreateNewOrGetExistingChat(new Models.Chat.Chat()
+            {
+                clientEmail = message.clientEmail,
+                driverEmail = message.driverEmail,
+                messages = new List<Models.Chat.ChatMessage> { message },
+                rideCreatedAtTimestamp = message.rideCreadtedAtTimestamp,
+                status = Models.Chat.ChatStatus.ACTIVE
+            });
             var connectionIdClient = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.clientEmail).Key;
             if (connectionIdClient != null)
             {
-                await Clients.Client(connectionIdClient).SendAsync("ReceiveMessage", createdMessage.clientEmail, createdMessage);
+                await Clients.Client(connectionIdClient).SendAsync("ReceiveMessage", createdMessage.clientEmail, createdChat);
             }
             
             var connectionIdDriver = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.driverEmail).Key;
             if (connectionIdDriver != null)
             {
-                await Clients.Client(connectionIdDriver).SendAsync("ReceiveMessage", createdMessage.driverEmail, createdMessage);
+                await Clients.Client(connectionIdDriver).SendAsync("ReceiveMessage", createdMessage.driverEmail, createdChat);
             }
         }
     }

@@ -151,7 +151,7 @@ namespace BussinesLogic
                 new EstimateRideResponse()
                 {
                     PriceEstimate = randomGen.NextSingle() * 1000,
-                    EstimatedDriverArrivalSeconds = randomGen.Next(60) // Max 1 hour
+                    EstimatedDriverArrivalSeconds = randomGen.Next(60) + 60 // Max 1 hour
                 });
         }
 
