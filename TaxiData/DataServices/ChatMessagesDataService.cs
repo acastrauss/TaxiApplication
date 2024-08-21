@@ -44,7 +44,7 @@ namespace TaxiData.DataServices
             while (await asyncEnum.MoveNextAsync(default))
             {
                 var msg = asyncEnum.Current.Value;
-                if(msg != null)
+                if(msg != null && msg.clientEmail != null && msg.driverEmail != null && msg.rideCreadtedAtTimestamp != 0)
                 {
                     if (msg.clientEmail.Equals(clientEmail) && msg.driverEmail.Equals(driverEmail) && msg.rideCreadtedAtTimestamp == rideCreatedAtTimestamp)
                     {

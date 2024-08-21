@@ -82,7 +82,11 @@ namespace BussinesLogic
 
         public async Task<bool> Register(UserProfile userProfile)
         {
-            var userExists = await authDBService.Exists(userProfile.Type.ToString(), userProfile.Email);
+            var userExists = false;
+            foreach (UserType type in Enum.GetValues(typeof(UserType)))
+            {
+                userExists |= await authDBService.Exists(type.ToString(), userProfile.Email);
+            }
 
             if (userExists)
             {

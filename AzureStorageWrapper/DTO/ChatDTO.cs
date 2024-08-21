@@ -15,7 +15,7 @@ namespace AzureStorageWrapper.DTO
                 ClientEmail = appModel.clientEmail,
                 DriverEmail = appModel.driverEmail,
                 PartitionKey = appModel.clientEmail,
-                RideCreadtedAtTimestamp = appModel.rideCreatedAtTimestamp,
+                RideCreadtedAtTimestamp = (long)appModel.rideCreatedAtTimestamp,
                 RowKey = appModel.rideCreatedAtTimestamp.ToString(),
                 Status = (int)appModel.status
             };

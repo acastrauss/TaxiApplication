@@ -51,46 +51,7 @@ namespace TaxiData
         #region AuthMethods
         public async Task<UserProfile> UpdateUserProfile(UpdateUserProfileRequest request, string partitionKey, string rowKey)
         {
-            var usersDict = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserProfile>>(typeof(UserProfile).Name);
-            using var tx = StateManager.CreateTransaction();
-            var key = $"{partitionKey}{rowKey}";
-            var existing = await usersDict.TryGetValueAsync(tx, key);
-
-            if (!existing.HasValue) 
-            {
-                return null;
-            }
-
-            if(request.Password != null)
-            {
-                existing.Value.Password = request.Password;
-            }
-
-            if (request.Username != null)
-            {
-                existing.Value.Username = request.Username;
-            }
-
-            if (request.Address != null)
-            {
-                existing.Value.Address = request.Address;
-            }
-
-            if (request.ImagePath != null)
-            {
-                existing.Value.ImagePath = request.ImagePath;
-            }
-
-            if (request.Fullname != null) 
-            {
-                existing.Value.Fullname = request.Fullname;
-            }
-
-            var updated = await usersDict.TryUpdateAsync(tx, key, existing.Value, existing.Value);
-
-            await tx.CommitAsync();
-
-            return updated ? existing.Value : null;
+            return await dataServiceFactory.AuthDataService.UpdateUserProfile(request, partitionKey, rowKey);
         }
 
         public async Task<UserProfile> GetUserProfile(string partitionKey, string rowKey)
@@ -118,11 +79,11 @@ namespace TaxiData
         }
         public async Task<bool> CreateDriver(Models.UserTypes.Driver appModel)
         {
-            var userCreated = await dataServiceFactory.AuthDataService.Create<UserProfile>(appModel);
+            var userCreated = await dataServiceFactory.AuthDataService.Create(appModel);
             if (userCreated)
             {
                 var newDriver = new Models.UserTypes.Driver(appModel, Models.UserTypes.DriverStatus.NOT_VERIFIED);
-                userCreated = await dataServiceFactory.AuthDataService.Create(newDriver);
+                userCreated = await dataServiceFactory.DriverDataService.Create(newDriver);
             }
 
             return userCreated;

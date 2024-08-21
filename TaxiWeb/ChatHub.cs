@@ -85,6 +85,7 @@ namespace TaxiWeb
                 rideCreatedAtTimestamp = message.rideCreadtedAtTimestamp,
                 status = Models.Chat.ChatStatus.ACTIVE
             });
+            
             var connectionIdClient = ConnectedUsers.FirstOrDefault(x => x.Value == createdMessage.clientEmail).Key;
             if (connectionIdClient != null)
             {
